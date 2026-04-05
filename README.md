@@ -1,159 +1,145 @@
-# Turborepo starter
+# BlueScope
 
-This Turborepo starter is maintained by the Turborepo core team.
+A lightweight, open-source intelligence toolkit built for investigative work. BlueScope transforms raw case data into clear, dependable AI-driven insights, streamlining investigative analysis and supporting precise, evidence-based decision-making.
 
-## Using this example
+## Overview
 
-Run the following command:
+BlueScope is a local-first, cross-platform Electron desktop application that assists investigators in processing criminal case narratives. Users input raw case text, and a pipeline of specialized LLM agents refines the description, extracts structured entities, builds relationship graphs, classifies the case against a Thai criminal law taxonomy, and generates domain-specific advisory reports — all stored locally.
 
-```sh
-npx create-turbo@latest
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Desktop shell | Electron + Electron Forge |
+| Frontend | React 19 + TypeScript + Vite |
+| UI components | Material UI v7 |
+| Routing | React Router v7 |
+| State management | Zustand |
+| Database | SQLite (`better-sqlite3`) + Drizzle ORM |
+| AI / LLM | Vercel AI SDK |
+| Build orchestration | Turborepo |
+| Linting / formatting | Biome |
+| i18n | Paraglide.js — English & Thai |
+| Schema validation | Zod |
+
+### Supported LLM Providers
+
+OpenAI, Anthropic, Google Gemini, Azure OpenAI, Groq, Mistral, Cohere, DeepSeek, Cerebras, xAI (Grok), Perplexity, TogetherAI, Fireworks, DeepInfra, and any OpenAI-compatible endpoint. API keys are encrypted using Electron's native safe storage.
+
+## Monorepo Structure
+
+```
+apps/
+  main/       — Electron main process (IPC handlers, SQLite, migrations, window management)
+  renderer/   — React SPA (UI, routing, AI streaming display)
+packages/
+  agents/     — AI agent classes built on the Vercel AI SDK
+  modules/    — Electron IPC bridge modules
+  repos/      — Drizzle ORM database repositories
+  skills/     — Thai criminal law skill taxonomy (58 Markdown skill files)
 ```
 
-## What's inside?
+### Apps
 
-This Turborepo includes the following packages/apps:
+**`apps/main`** — Electron main process. Initialises the SQLite database, runs Drizzle migrations, exposes all IPC module handlers, manages a borderless window with custom titlebar controls, and uses `safeStorage` for encrypted API key persistence.
 
-### Apps and Packages
+**`apps/renderer`** — Vite-powered React frontend loaded inside the Electron window. Communicates with the main process exclusively via IPC bridges exposed by `preload.ts`.
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+### Packages
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+**`@repo/agents`** — Structured LLM agents. Each agent extends `BaseAgent` with bilingual (EN/TH) system/user prompts.
 
-### Utilities
+| Agent | Purpose |
+|---|---|
+| `TitleAgent` | Generates a concise case title |
+| `SummaryAgent` | Produces a one-paragraph case summary |
+| `DescriptionRefinementAgent` | Rewrites the case narrative for clarity |
+| `EntityRefinementAgent` | Refines structured entity lists |
+| `StructureExtractionAgent` | Extracts persons, organizations, locations, assets, damages, evidence, and events |
+| `LinkAnalysisAgent` | Infers relationships between extracted entities |
+| `ClassificationAgent` | Multi-label classification against the skill taxonomy |
+| `AdvisoryAgent` | Generates skill-specific investigative recommendations |
+| `SynthesisAgent` | Aggregates multiple advisory outputs into one report |
 
-This Turborepo has some additional tools already setup for you:
+**`@repo/modules`** — IPC modules: `caseModule`, `configModule`, `providerModule`, `llmModule`, `descriptionModule`, `refinementModule`, `structureModule`, `classificationModule`, `advisorModule`, `dashboardModule`, `presetModule`, `searchModule`, `logModule`, `browserModule`, `devModule`.
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+**`@repo/repos`** — Drizzle ORM repositories for every database table: `cases`, `case_persons`, `case_organizations`, `case_locations`, `case_assets`, `case_damages`, `case_evidence`, `case_events`, `case_links`, `case_types`, `case_suggestions`, `case_description_logs`, `case_entity_logs`, `presets`, `usage_logs`.
+
+**`@repo/skills`** — 58 Markdown skill files covering Thai criminal law categories (homicide, arson, sexual offences, property crimes, narcotics, cybercrime, financial crime, wildlife/environmental offences, and more). Each skill provides classification metadata and a system prompt for the `AdvisoryAgent`.
+
+### Renderer Pages
+
+| Page | Route | Description |
+|---|---|---|
+| Dashboard | `/dashboard` | Case statistics, priority charts, classification breakdown, LLM token usage, recent cases |
+| Case List | `/cases` | Browse, create, and manage cases |
+| Description | `/description` | Markdown editor (Tiptap), AI title/summary generation, case metadata |
+| Refine | `/refine` | Dual-pane AI refinement for description and entity text, with history |
+| Knowledge | `/knowledge` | Entity tables and interactive relationship network graph (Neo4j NVL) |
+| Classification | `/classification` | AI multi-label case classification against the skill taxonomy |
+| Suggestion | `/suggestion` | Per-skill advisory generation and AI synthesis report |
+| Settings | `/setting` | Theme, language, reasoning toggle, LLM provider management |
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 24+
+- npm
+
+### Install dependencies
+
+```sh
+npm install
+```
+
+### Development
+
+```sh
+npm run dev
+```
+
+Starts the Vite dev server for the renderer and the Electron main process concurrently via Turborepo.
 
 ### Build
 
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
 ```sh
-cd my-turborepo
-turbo build
+npm run build
 ```
 
-Without global `turbo`, use your package manager:
+Compiles all packages and apps.
+
+### Package for distribution
 
 ```sh
-cd my-turborepo
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+npm run dist
+npm run package
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+Produces a packaged Electron application in `release/`. Outputs ZIP archives for Windows, macOS, and Linux.
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+### Create installers
 
 ```sh
-turbo build --filter=docs
+npm run make
 ```
 
-Without global `turbo`:
+Runs `electron-forge make` to generate platform-specific installers.
 
-```sh
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+## Scripts Reference
 
-### Develop
-
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+| Script | Description |
+|---|---|
+| `npm run dev` | Start development (main + renderer) |
+| `npm run build` | Build all packages and apps |
+| `npm run dist` | Build and copy all artifacts for packaging |
+| `npm run start` | Start the packaged Electron app |
+| `npm run make` | Create platform installers via Electron Forge |
+| `npm run package` | Package the Electron app |
+| `npm run clean` | Remove all build artifacts |
+| `npm run lint` | Biome lint across all workspaces |
+| `npm run format` | Biome format across all workspaces |
+| `npm run check` | Biome check across all workspaces |
+| `npm run rebuild` | Rebuild native modules (`better-sqlite3`) for Electron |
+| `npm run test` | Run Vitest test suites (`@repo/repos`, `@repo/skills`) |
+| `npm run make-version` | Generate `version.json` |

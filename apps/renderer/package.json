@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "message": "npx @inlang/paraglide-js compile --project ./project.inlang --outdir ./src/paraglide",
+    "build": "npm run message && tsc -b && vite build",
     "clean": "rimraf ./dist && rimraf ../../renderer",
     "dist": "copyfiles -u 1 ./dist/**/* ../../renderer",
     "lint": "biome lint --fix",
