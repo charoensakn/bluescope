@@ -1,0 +1,17 @@
+{
+  "name": "main",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "npm run build && npm run dist && electron ../../",
+    "build": "tsc -b",
+    "clean": "rimraf ./dist && rimraf ../../main",
+    "dist": "copyfiles -u 1 ./dist/**/* ../../main",
+    "lint": "biome lint  --write",
+    "format": "biome format --write",
+    "check": "biome check --write"
+  },
+  "dependencies": {
+    "@repo/modules": "*"
+  }
+}

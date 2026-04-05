@@ -1,0 +1,21 @@
+{
+  "name": "@repo/modules",
+  "private": true,
+  "version": "0.1.0",
+  "exports": {
+    ".": {
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rimraf ./dist",
+    "lint": "biome lint  --write",
+    "format": "biome format --write",
+    "check": "biome check --write"
+  },
+  "dependencies": {
+    "@repo/agents": "*",
+    "@repo/repos": "*"
+  }
+}

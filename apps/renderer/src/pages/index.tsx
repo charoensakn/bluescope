@@ -1,0 +1,11 @@
+export { AboutPage } from './AboutPage';
+export { CaseListPage } from './CaseListPage';
+export { ClassificationPage } from './ClassificationPage';
+export { DashboardPage } from './DashboardPage';
+export { DescriptionPage } from './DescriptionPage';
+export { DevPage } from './DevPage';
+export { KnowledgePage } from './KnowledgePage';
+export { NotFoundPage } from './NotFoundPage';
+export { RefinePage } from './RefinePage';
+export { SettingPage } from './SettingPage';
+export { SuggestionPage } from './SuggestionPage';

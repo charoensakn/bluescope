@@ -1,0 +1,13 @@
+{
+  "name": "@repo/skills",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "clean": "rimraf ../../skills",
+    "dist": "copyfiles -e ./src/template/**/* -u 1 ./src/**/*.md ../../skills",
+    "lint": "biome lint  --write",
+    "format": "biome format --write",
+    "check": "biome check --write",
+    "test": "vitest"
+  }
+}

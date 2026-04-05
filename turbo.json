@@ -1,0 +1,41 @@
+{
+  "$schema": "./node_modules/turbo/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**"]
+    },
+    "dev": {
+      "env": ["VITE_APP_URL", "VITE_BASE_URL"],
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["^lint"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "cache": false
+    },
+    "format": {
+      "dependsOn": ["^format"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "cache": false
+    },
+    "check": {
+      "dependsOn": ["^check"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "cache": false
+    },
+    "clean": {
+      "dependsOn": ["^clean"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "cache": false
+    },
+    "dist": {
+      "dependsOn": ["build", "^dist"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "cache": false
+    }
+  }
+}

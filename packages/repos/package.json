@@ -1,0 +1,27 @@
+{
+  "name": "@repo/repos",
+  "private": true,
+  "version": "0.1.0",
+  "exports": {
+    ".": {
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "generate": "drizzle-kit generate --config ./drizzle.config.ts",
+    "build": "tsc -b",
+    "clean": "rimraf ./dist && rimraf ../../migrations",
+    "dist": "copyfiles -u 1 ./drizzle/**/* ../../migrations",
+    "lint": "biome lint  --write",
+    "format": "biome format --write",
+    "check": "biome check --write",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.10"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.8.0",
+    "drizzle-orm": "^0.45.2"
+  }
+}
