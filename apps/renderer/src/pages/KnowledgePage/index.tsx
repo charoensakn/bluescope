@@ -14,9 +14,9 @@ import type {
 } from '@repo/modules';
 import { useState } from 'react';
 import useSWR from 'swr';
-import { AIButton, CaseNotFound, PageHeader, type ReasoningMessage } from '../../components';
+import { AIButton, CaseNotFound, PageHeader } from '../../components';
 import fetcher from '../../fetcher';
-import { useCaseStore, useUIStore } from '../../hooks';
+import { useCaseStore, useGenerate, useUIStore } from '../../hooks';
 import { m } from '../../paraglide/messages';
 import { AssetTable } from './AssetTable';
 import { DamageTable } from './DamageTable';
@@ -30,32 +30,74 @@ import { PersonTable } from './PersonTable';
 
 export function KnowledgePage() {
   const [view, setView] = useState<'table' | 'graph'>('table');
-  const [personMessage, setPersonMessage] = useState<ReasoningMessage>(null);
-  const [organizationMessage, setOrganizationMessage] = useState<ReasoningMessage>(null);
-  const [locationMessage, setLocationMessage] = useState<ReasoningMessage>(null);
-  const [assetMessage, setAssetMessage] = useState<ReasoningMessage>(null);
-  const [damageMessage, setDamageMessage] = useState<ReasoningMessage>(null);
-  const [evidenceMessage, setEvidenceMessage] = useState<ReasoningMessage>(null);
-  const [eventMessage, setEventMessage] = useState<ReasoningMessage>(null);
-  const [linkMessage, setLinkMessage] = useState<ReasoningMessage>(null);
-  const [isPersonRefreshing, setIsPersonRefreshing] = useState(false);
-  const [isOrganizationRefreshing, setIsOrganizationRefreshing] = useState(false);
-  const [isLocationRefreshing, setIsLocationRefreshing] = useState(false);
-  const [isAssetRefreshing, setIsAssetRefreshing] = useState(false);
-  const [isDamageRefreshing, setIsDamageRefreshing] = useState(false);
-  const [isEvidenceRefreshing, setIsEvidenceRefreshing] = useState(false);
-  const [isEventRefreshing, setIsEventRefreshing] = useState(false);
-  const [isLinkRefreshing, setIsLinkRefreshing] = useState(false);
 
-  const isRefreshing =
-    isPersonRefreshing ||
-    isOrganizationRefreshing ||
-    isLocationRefreshing ||
-    isAssetRefreshing ||
-    isDamageRefreshing ||
-    isEvidenceRefreshing ||
-    isEventRefreshing ||
-    isLinkRefreshing;
+  const {
+    message: personMessage,
+    isGenerating: isPersonGenerating,
+    generate: personGenerate,
+    setIsGenerating: setIsPersonGenerating,
+    setMessage: setPersonMessage,
+  } = useGenerate();
+
+  const {
+    message: organizationMessage,
+    isGenerating: isOrganizationGenerating,
+    generate: organizationGenerate,
+    setIsGenerating: setIsOrganizationGenerating,
+    setMessage: setOrganizationMessage,
+  } = useGenerate();
+  const {
+    message: locationMessage,
+    isGenerating: isLocationGenerating,
+    generate: locationGenerate,
+    setIsGenerating: setIsLocationGenerating,
+    setMessage: setLocationMessage,
+  } = useGenerate();
+  const {
+    message: assetMessage,
+    isGenerating: isAssetGenerating,
+    generate: assetGenerate,
+    setIsGenerating: setIsAssetGenerating,
+    setMessage: setAssetMessage,
+  } = useGenerate();
+  const {
+    message: damageMessage,
+    isGenerating: isDamageGenerating,
+    generate: damageGenerate,
+    setIsGenerating: setIsDamageGenerating,
+    setMessage: setDamageMessage,
+  } = useGenerate();
+  const {
+    message: evidenceMessage,
+    isGenerating: isEvidenceGenerating,
+    generate: evidenceGenerate,
+    setIsGenerating: setIsEvidenceGenerating,
+    setMessage: setEvidenceMessage,
+  } = useGenerate();
+  const {
+    message: eventMessage,
+    isGenerating: isEventGenerating,
+    generate: eventGenerate,
+    setIsGenerating: setIsEventGenerating,
+    setMessage: setEventMessage,
+  } = useGenerate();
+  const {
+    message: linkMessage,
+    isGenerating: isLinkGenerating,
+    generate: linkGenerate,
+    setIsGenerating: setIsLinkGenerating,
+    setMessage: setLinkMessage,
+  } = useGenerate();
+
+  const isGenerating =
+    isPersonGenerating ||
+    isOrganizationGenerating ||
+    isLocationGenerating ||
+    isAssetGenerating ||
+    isDamageGenerating ||
+    isEvidenceGenerating ||
+    isEventGenerating ||
+    isLinkGenerating;
 
   const promptLocale = useUIStore((state) => state.promptLocale);
 
@@ -86,172 +128,180 @@ export function KnowledgePage() {
 
   const handleRefreshPersons = async () => {
     if (!focusCaseId) return;
-    setIsPersonRefreshing(true);
-    setPersonMessage(null);
-    try {
-      await window.structure.extract({
-        caseId: focusCaseId,
-        extract: 'person',
-        thai: promptLocale === 'th',
+    const results = await personGenerate(window.structure.extract, {
+      caseId: focusCaseId,
+      extract: 'person',
+      thai: promptLocale === 'th',
+    });
+    if (Array.isArray(results) && results.length > 0) {
+      setPersonMessage({
+        severity: 'success',
+        message: m.refresh_success(),
       });
-      setPersonMessage({ severity: 'success', message: m.refresh_success() });
-      mutatePersons();
-    } catch (err) {
-      const message = m.error({ message: (err as Error).message });
-      setPersonMessage({ severity: 'error', message });
-    } finally {
-      setIsPersonRefreshing(false);
+    } else {
+      setPersonMessage({
+        severity: 'warning',
+        message: m.knowledge_no_persons(),
+      });
     }
+    mutatePersons();
   };
 
   const handleRefreshOrganizations = async () => {
     if (!focusCaseId) return;
-    setIsOrganizationRefreshing(true);
-    setOrganizationMessage(null);
-    try {
-      await window.structure.extract({
-        caseId: focusCaseId,
-        extract: 'organization',
-        thai: promptLocale === 'th',
+    const results = await organizationGenerate(window.structure.extract, {
+      caseId: focusCaseId,
+      extract: 'organization',
+      thai: promptLocale === 'th',
+    });
+    if (Array.isArray(results) && results.length > 0) {
+      setOrganizationMessage({
+        severity: 'success',
+        message: m.refresh_success(),
       });
-      setOrganizationMessage({ severity: 'success', message: m.refresh_success() });
-      mutateOrganizations();
-    } catch (err) {
-      const message = m.error({ message: (err as Error).message });
-      setOrganizationMessage({ severity: 'error', message });
-    } finally {
-      setIsOrganizationRefreshing(false);
+    } else {
+      setOrganizationMessage({
+        severity: 'warning',
+        message: m.knowledge_no_organizations(),
+      });
     }
+    mutateOrganizations();
   };
 
   const handleRefreshLocations = async () => {
     if (!focusCaseId) return;
-    setIsLocationRefreshing(true);
-    setLocationMessage(null);
-    try {
-      await window.structure.extract({
-        caseId: focusCaseId,
-        extract: 'location',
-        thai: promptLocale === 'th',
+    const results = await locationGenerate(window.structure.extract, {
+      caseId: focusCaseId,
+      extract: 'location',
+      thai: promptLocale === 'th',
+    });
+    if (Array.isArray(results) && results.length > 0) {
+      setLocationMessage({
+        severity: 'success',
+        message: m.refresh_success(),
       });
-      setLocationMessage({ severity: 'success', message: m.refresh_success() });
-      mutateLocations();
-    } catch (err) {
-      const message = m.error({ message: (err as Error).message });
-      setLocationMessage({ severity: 'error', message });
-    } finally {
-      setIsLocationRefreshing(false);
+    } else {
+      setLocationMessage({
+        severity: 'warning',
+        message: m.knowledge_no_locations(),
+      });
     }
+    mutateLocations();
   };
 
   const handleRefreshAssets = async () => {
     if (!focusCaseId) return;
-    setIsAssetRefreshing(true);
-    setAssetMessage(null);
-    try {
-      await window.structure.extract({
-        caseId: focusCaseId,
-        extract: 'asset',
-        thai: promptLocale === 'th',
+    const results = await assetGenerate(window.structure.extract, {
+      caseId: focusCaseId,
+      extract: 'asset',
+      thai: promptLocale === 'th',
+    });
+    if (Array.isArray(results) && results.length > 0) {
+      setAssetMessage({
+        severity: 'success',
+        message: m.refresh_success(),
       });
-      setAssetMessage({ severity: 'success', message: m.refresh_success() });
-      mutateAssets();
-    } catch (err) {
-      const message = m.error({ message: (err as Error).message });
-      setAssetMessage({ severity: 'error', message });
-    } finally {
-      setIsAssetRefreshing(false);
+    } else {
+      setAssetMessage({
+        severity: 'warning',
+        message: m.knowledge_no_assets(),
+      });
     }
+    mutateAssets();
   };
 
   const handleRefreshDamages = async () => {
     if (!focusCaseId) return;
-    setIsDamageRefreshing(true);
-    setDamageMessage(null);
-    try {
-      await window.structure.extract({
-        caseId: focusCaseId,
-        extract: 'damage',
-        thai: promptLocale === 'th',
+    const results = await damageGenerate(window.structure.extract, {
+      caseId: focusCaseId,
+      extract: 'damage',
+      thai: promptLocale === 'th',
+    });
+    if (Array.isArray(results) && results.length > 0) {
+      setDamageMessage({
+        severity: 'success',
+        message: m.refresh_success(),
       });
-      setDamageMessage({ severity: 'success', message: m.refresh_success() });
-      mutateDamages();
-    } catch (err) {
-      const message = m.error({ message: (err as Error).message });
-      setDamageMessage({ severity: 'error', message });
-    } finally {
-      setIsDamageRefreshing(false);
+    } else {
+      setDamageMessage({
+        severity: 'warning',
+        message: m.knowledge_no_damages(),
+      });
     }
+    mutateDamages();
   };
 
   const handleRefreshEvidences = async () => {
     if (!focusCaseId) return;
-    setIsEvidenceRefreshing(true);
-    setEvidenceMessage(null);
-    try {
-      await window.structure.extract({
-        caseId: focusCaseId,
-        extract: 'evidence',
-        thai: promptLocale === 'th',
+    const results = await evidenceGenerate(window.structure.extract, {
+      caseId: focusCaseId,
+      extract: 'evidence',
+      thai: promptLocale === 'th',
+    });
+    if (Array.isArray(results) && results.length > 0) {
+      setEvidenceMessage({
+        severity: 'success',
+        message: m.refresh_success(),
       });
-      setEvidenceMessage({ severity: 'success', message: m.refresh_success() });
-      mutateEvidences();
-    } catch (err) {
-      const message = m.error({ message: (err as Error).message });
-      setEvidenceMessage({ severity: 'error', message });
-    } finally {
-      setIsEvidenceRefreshing(false);
+    } else {
+      setEvidenceMessage({
+        severity: 'warning',
+        message: m.knowledge_no_evidence(),
+      });
     }
+    mutateEvidences();
   };
 
   const handleRefreshEvents = async () => {
     if (!focusCaseId) return;
-    setIsEventRefreshing(true);
-    setEventMessage(null);
-    try {
-      await window.structure.extract({
-        caseId: focusCaseId,
-        extract: 'event',
-        thai: promptLocale === 'th',
+    const results = await eventGenerate(window.structure.extract, {
+      caseId: focusCaseId,
+      extract: 'event',
+      thai: promptLocale === 'th',
+    });
+    if (Array.isArray(results) && results.length > 0) {
+      setEventMessage({
+        severity: 'success',
+        message: m.refresh_success(),
       });
-      setEventMessage({ severity: 'success', message: m.refresh_success() });
-      mutateEvents();
-    } catch (err) {
-      const message = m.error({ message: (err as Error).message });
-      setEventMessage({ severity: 'error', message });
-    } finally {
-      setIsEventRefreshing(false);
+    } else {
+      setEventMessage({
+        severity: 'warning',
+        message: m.knowledge_no_events(),
+      });
     }
+    mutateEvents();
   };
 
   const handleRefreshLinks = async () => {
     if (!focusCaseId) return;
-    setIsLinkRefreshing(true);
-    setLinkMessage(null);
-    try {
-      await window.structure.analyze({
-        caseId: focusCaseId,
-        thai: promptLocale === 'th',
+    const results = await linkGenerate(window.structure.analyze, {
+      caseId: focusCaseId,
+      thai: promptLocale === 'th',
+    });
+    if (Array.isArray(results) && results.length > 0) {
+      setLinkMessage({
+        severity: 'success',
+        message: m.refresh_success(),
       });
-      setLinkMessage({ severity: 'success', message: m.refresh_success() });
-      mutateLinks();
-    } catch (err) {
-      const message = m.error({ message: (err as Error).message });
-      setLinkMessage({ severity: 'error', message });
-    } finally {
-      setIsLinkRefreshing(false);
+    } else {
+      setLinkMessage({
+        severity: 'warning',
+        message: m.knowledge_no_links(),
+      });
     }
+    mutateLinks();
   };
 
   const handleAllRefresh = async () => {
-    setIsPersonRefreshing(true);
-    setIsOrganizationRefreshing(true);
-    setIsLocationRefreshing(true);
-    setIsAssetRefreshing(true);
-    setIsDamageRefreshing(true);
-    setIsEvidenceRefreshing(true);
-    setIsEventRefreshing(true);
-    setIsLinkRefreshing(true);
+    setIsPersonGenerating(true);
+    setIsOrganizationGenerating(true);
+    setIsLocationGenerating(true);
+    setIsAssetGenerating(true);
+    setIsDamageGenerating(true);
+    setIsEvidenceGenerating(true);
+    setIsEventGenerating(true);
+    setIsLinkGenerating(true);
 
     await handleRefreshPersons();
     await handleRefreshOrganizations();
@@ -281,7 +331,7 @@ export function KnowledgePage() {
             <AccountTreeIcon fontSize="small" />
           </ToggleButton>
         </ToggleButtonGroup>
-        <AIButton isLoading={isRefreshing} onClick={handleAllRefresh}>
+        <AIButton isLoading={isGenerating} onClick={handleAllRefresh}>
           {m.refresh()}
         </AIButton>
       </PageHeader>
@@ -290,49 +340,49 @@ export function KnowledgePage() {
           <PersonTable
             message={personMessage}
             rows={persons}
-            isRefreshing={isPersonRefreshing}
+            isRefreshing={isPersonGenerating}
             onRefresh={handleRefreshPersons}
           />
           <OrganizationTable
             message={organizationMessage}
             rows={organizations}
-            isRefreshing={isOrganizationRefreshing}
+            isRefreshing={isOrganizationGenerating}
             onRefresh={handleRefreshOrganizations}
           />
           <LocationTable
             message={locationMessage}
             rows={locations}
-            isRefreshing={isLocationRefreshing}
+            isRefreshing={isLocationGenerating}
             onRefresh={handleRefreshLocations}
           />
           <AssetTable
             message={assetMessage}
             rows={assets}
-            isRefreshing={isAssetRefreshing}
+            isRefreshing={isAssetGenerating}
             onRefresh={handleRefreshAssets}
           />
           <DamageTable
             message={damageMessage}
             rows={damages}
-            isRefreshing={isDamageRefreshing}
+            isRefreshing={isDamageGenerating}
             onRefresh={handleRefreshDamages}
           />
           <EvidenceTable
             message={evidenceMessage}
             rows={evidences}
-            isRefreshing={isEvidenceRefreshing}
+            isRefreshing={isEvidenceGenerating}
             onRefresh={handleRefreshEvidences}
           />
           <EventTable
             message={eventMessage}
             rows={events}
-            isRefreshing={isEventRefreshing}
+            isRefreshing={isEventGenerating}
             onRefresh={handleRefreshEvents}
           />
           <LinkTable
             message={linkMessage}
             rows={links}
-            isRefreshing={isLinkRefreshing}
+            isRefreshing={isLinkGenerating}
             onRefresh={handleRefreshLinks}
           />
         </>

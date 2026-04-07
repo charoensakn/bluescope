@@ -13,7 +13,7 @@ import {
 } from '../../components';
 import { useUIStore } from '../../hooks';
 import { m } from '../../paraglide/messages';
-import { PROVIDER_NAME_MAP } from '../../utils';
+import { getErrorMessage, PROVIDER_NAME_MAP } from '../../utils';
 
 export type ProviderDialogProps = {
   open?: boolean;
@@ -79,17 +79,10 @@ export function ProviderDialog({ open, provider, onAddProvider, onCancel }: Prov
       });
     } catch (err) {
       const message = (err as Error).message || m.unknown();
-      if (message.toLocaleLowerCase().includes('model')) {
-        setConnectionMessage({
-          severity: 'warning',
-          message: m.setting_connect_warning({ message }),
-        });
-      } else {
-        setConnectionMessage({
-          severity: 'error',
-          message: m.setting_connect_fail({ message }),
-        });
-      }
+      setConnectionMessage({
+        severity: 'error',
+        message: m.setting_connect_fail({ message }),
+      });
     } finally {
       setConnecting(false);
     }
@@ -113,16 +106,15 @@ export function ProviderDialog({ open, provider, onAddProvider, onCancel }: Prov
           severity: 'info',
           message: reasoning,
         });
+      } else {
+        setReasoningMessage(null);
       }
       setGeneratingMessage({
         severity: 'success',
         message: text,
       });
     } catch (err) {
-      setGeneratingMessage({
-        severity: 'error',
-        message: (err as Error).message || m.unknown(),
-      });
+      setGeneratingMessage(getErrorMessage(err));
     } finally {
       setGenerating(false);
     }
@@ -165,6 +157,12 @@ export function ProviderDialog({ open, provider, onAddProvider, onCancel }: Prov
           label="API KEY"
           value={formValues.apiKey}
           onChange={(value) => setFormValues((prev) => ({ ...prev, apiKey: value }))}
+        />
+        <TextField
+          label={m.setting_model_name()}
+          value={formValues.modelName}
+          onChange={(e) => setFormValues((prev) => ({ ...prev, modelName: e.target.value }))}
+          placeholder="gpt-5.4, gpt-5.4-mini, gpt-5.4-nano"
         />
         <AIButton isLoading={connecting} variant="outlined" size="small" onClick={handleTestConnection}>
           {m.test()}
@@ -218,12 +216,6 @@ export function ProviderDialog({ open, provider, onAddProvider, onCancel }: Prov
               return { ...prev, maxOutputTokens };
             })
           }
-        />
-        <TextField
-          label={m.setting_model_name()}
-          value={formValues.modelName}
-          onChange={(e) => setFormValues((prev) => ({ ...prev, modelName: e.target.value }))}
-          placeholder="gpt-5.4, gpt-5.4-mini, gpt-5.4-nano"
         />
         <AIButton isLoading={generating} variant="outlined" size="small" onClick={handleTestGenerating}>
           {m.test()}

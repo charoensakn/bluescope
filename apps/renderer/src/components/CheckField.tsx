@@ -20,9 +20,9 @@ export function CheckField({ label, selected, onClick }: CheckFieldProps) {
       }}
       onClick={() => onClick?.()}
     >
-      <Stack direction="row" spacing={1} alignItems="center">
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
         {label && (
-          <Typography variant="body1" flex={1}>
+          <Typography variant="body1" sx={{ flex: 1 }}>
             {label}
           </Typography>
         )}

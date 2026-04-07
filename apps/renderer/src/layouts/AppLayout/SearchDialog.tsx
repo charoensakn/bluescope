@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import type { Case } from '@repo/modules';
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { useCaseStore } from '../../hooks';
 import { m } from '../../paraglide/messages';
 import { getShortId } from '../../utils';
@@ -30,6 +30,7 @@ export function SearchDialog({ open, onCancel }: SearchDialogProps) {
   const [cases, setCases] = useState<Case[]>([]);
   const [loading, setLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { pathname } = useLocation();
 
   useEffect(() => {
     setQuery('');
@@ -80,7 +81,9 @@ export function SearchDialog({ open, onCancel }: SearchDialogProps) {
 
   const handleSelect = (c: Case) => {
     setFocusCaseId(c.id);
-    navigate('/description');
+    if (pathname === '/' || pathname.startsWith('/dashboard') || pathname.startsWith('/cases')) {
+      navigate('/description');
+    }
     onCancel?.();
   };
 

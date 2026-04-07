@@ -50,7 +50,7 @@ export function LinkTable({ rows, message, isRefreshing, onRefresh }: LinkTableP
               <TableCellChip labels={row.sourceId} />
               <TableCellChip color="secondary" labels={row.targetId} />
               <TableCellText>{row.relation || '-'}</TableCellText>
-              <TableCellText fontWeight="bold" mono>
+              <TableCellText mono sx={{ fontWeight: 'bold' }}>
                 {(row.confidence || 0).toFixed(2)}
               </TableCellText>
             </TableRow>

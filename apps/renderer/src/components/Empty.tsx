@@ -8,17 +8,17 @@ export type EmptyProps = {
 export function Empty({ isLoading }: EmptyProps) {
   return (
     <Paper variant="outlined" sx={{ borderStyle: 'dashed', borderWidth: 2, backgroundColor: 'transparent' }}>
-      <Stack spacing={3} alignItems="center" justifyContent="center" py={5}>
+      <Stack spacing={3} sx={{ alignItems: 'center', justifyContent: 'center', py: 5 }}>
         {isLoading ? (
-          <Box py={1.55} sx={{ width: '22%' }}>
+          <Box sx={{ width: '22%', py: 1.55 }}>
             <LinearProgress />
           </Box>
         ) : (
-          <Typography variant="h2" textAlign="center">
+          <Typography variant="h2" sx={{ textAlign: 'center' }}>
             {m.nodata_title()}
           </Typography>
         )}
-        <Typography variant="body1" color="text.secondary" textAlign="center" sx={{ maxWidth: 400 }}>
+        <Typography variant="body1" color="textSecondary" sx={{ maxWidth: 400, textAlign: 'center' }}>
           {m.nodata_subtitle()}
         </Typography>
       </Stack>

@@ -42,7 +42,7 @@ export function CaseCard({ data }: CaseCardProps) {
         }}
       >
         <CardContent sx={{ width: '100%', p: 3 }}>
-          <Stack direction="row" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Stack direction="row" sx={{ mb: 2, justifyContent: 'space-between' }}>
             <Typography
               variant="body2"
               sx={{
@@ -68,7 +68,7 @@ export function CaseCard({ data }: CaseCardProps) {
             </Typography>
           </LineClamp>
 
-          <Stack flex={1} direction="row" alignItems="center" spacing={1}>
+          <Stack direction="row" spacing={1} sx={{ flex: 1, alignItems: 'center' }}>
             <Typography variant="caption" color="text.secondary">
               {new Date(data.updatedAt).toLocaleString('th-TH')}
             </Typography>

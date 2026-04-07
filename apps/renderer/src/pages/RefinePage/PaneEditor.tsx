@@ -41,7 +41,7 @@ export function PaneEditor({
   }, [editor, defaultMarkdown]);
 
   const controls = (
-    <Stack direction="row" alignItems="center" justifyContent="end" spacing={1} width={320}>
+    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'end', width: 320 }}>
       <IconButton size="small" disabled={disabled} onClick={() => onPrevClick?.()}>
         <ArrowBackIcon fontSize="small" />
       </IconButton>

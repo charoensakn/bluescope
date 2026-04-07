@@ -13,12 +13,12 @@ import {
   PageHeader,
   PaperWithHeader,
   Reasoning,
-  type ReasoningMessage,
 } from '../../components';
 import fetcher from '../../fetcher';
-import { useCaseStore, useUIStore } from '../../hooks';
+import { useCaseStore, useGenerate, useUIStore } from '../../hooks';
 import { m } from '../../paraglide/messages';
 import { baseMono } from '../../theme';
+import { getErrorMessage } from '../../utils';
 import { ClearDialog } from './ClearDialog';
 import { type Skill, SkillCard } from './SkillCard';
 
@@ -32,10 +32,10 @@ export function ClassificationPage() {
   const { uiLocale, promptLocale } = useUIStore((state) => state);
   const focusCaseId = useCaseStore((state) => state.focusCaseId);
   const [categories, setCategories] = useState<SkillCategory[]>([]);
-  const [isCategorizing, setIsCategorizing] = useState(false);
-  const [message, setMessage] = useState<ReasoningMessage>(null);
   const [isClearDialogOpen, setClearDialogOpen] = useState(false);
   const [isShowDescription, setIsShowDescription] = useState(false);
+
+  const { generate, isGenerating, message, setMessage } = useGenerate();
 
   const { data: skills, isLoading: isSkillsLoading } = useSWR<CaseSkill[]>('classification:getSkills', fetcher);
   const {
@@ -71,25 +71,24 @@ export function ClassificationPage() {
 
   const handleCategorize = async () => {
     if (!focusCaseId) return;
-    setIsCategorizing(true);
-    try {
-      await window.classification.categorize({
-        caseId: focusCaseId,
-        thai: promptLocale === 'th',
-      });
+
+    const results = await generate(window.classification.categorize, {
+      caseId: focusCaseId,
+      thai: promptLocale === 'th',
+    });
+
+    if (Array.isArray(results) && results.length > 0) {
       setMessage({
         severity: 'success',
         message: m.classification_success(),
       });
-      mutate();
-    } catch (err) {
+    } else {
       setMessage({
-        severity: 'error',
-        message: m.error({ message: (err as Error).message }),
+        severity: 'warning',
+        message: m.classification_no_skills(),
       });
-    } finally {
-      setIsCategorizing(false);
     }
+    mutate();
   };
 
   const handleClear = async () => {
@@ -103,10 +102,7 @@ export function ClassificationPage() {
       });
       mutate();
     } catch (err) {
-      setMessage({
-        severity: 'error',
-        message: m.error({ message: (err as Error).message }),
-      });
+      setMessage(getErrorMessage(err));
     } finally {
       setClearDialogOpen(false);
     }
@@ -118,10 +114,7 @@ export function ClassificationPage() {
       await window.classification.selectSkill(focusCaseId, skillId, selected);
       mutate();
     } catch (err) {
-      setMessage({
-        severity: 'error',
-        message: m.error({ message: (err as Error).message }),
-      });
+      setMessage(getErrorMessage(err));
     }
   };
 
@@ -132,7 +125,7 @@ export function ClassificationPage() {
   return (
     <PageContainer>
       <PageHeader title={m.classification_title()} subtitle={m.classification_subtitle()}>
-        <Box display="flex" alignItems="center">
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton size="small" onClick={() => setIsShowDescription((prev) => !prev)}>
             {isShowDescription ? <SubtitlesIcon fontSize="small" /> : <SubtitlesOffIcon fontSize="small" />}
           </IconButton>
@@ -140,7 +133,7 @@ export function ClassificationPage() {
         <Button variant="outlined" color="error" startIcon={<DeleteIcon />} onClick={() => setClearDialogOpen(true)}>
           {m.clear()}
         </Button>
-        <AIButton isLoading={isCategorizing} onClick={handleCategorize}>
+        <AIButton isLoading={isGenerating} onClick={handleCategorize}>
           {m.categorize()}
         </AIButton>
       </PageHeader>

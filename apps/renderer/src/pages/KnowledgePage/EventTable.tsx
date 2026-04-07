@@ -49,12 +49,12 @@ export function EventTable({ rows, message, isRefreshing, onRefresh }: EventTabl
         {Array.isArray(rows) &&
           rows.map((row) => (
             <TableRow key={row.createdAt} hover>
-              <TableCellText fontWeight="bold">{row.id || '-'}</TableCellText>
-              <TableCellText fontWeight="bold">{row.name || '-'}</TableCellText>
+              <TableCellText sx={{ fontWeight: 'bold' }}>{row.id || '-'}</TableCellText>
+              <TableCellText sx={{ fontWeight: 'bold' }}>{row.name || '-'}</TableCellText>
               <TableCellChip labels={row.types} />
               <TableCellText>{row.occurrenceTime || '-'}</TableCellText>
               <TableCellText>{row.eventDetails || '-'}</TableCellText>
-              <TableCellText fontWeight="bold" mono>
+              <TableCellText mono sx={{ fontWeight: 'bold' }}>
                 {(row.confidence || 0).toFixed(2)}
               </TableCellText>
             </TableRow>

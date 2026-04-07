@@ -9,12 +9,12 @@ export function CaseNotFound() {
   return (
     <Stack
       spacing={3}
-      alignItems="center"
-      justifyContent="center"
       sx={{
         height: '100%',
         textAlign: 'center',
         p: 3,
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
     >
       <SearchOffIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 1 }} />

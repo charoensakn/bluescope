@@ -1,7 +1,7 @@
 {
   "name": "renderer",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -21,9 +21,8 @@
     "@fontsource-variable/noto-sans-mono": "^5.2.10",
     "@fontsource-variable/noto-sans-thai": "^5.2.8",
     "@fontsource-variable/noto-sans-thai-looped": "^5.2.3",
-    "@inlang/paraglide-js": "^2.15.1",
-    "@mui/icons-material": "^7.3.9",
-    "@mui/material": "^7.3.9",
+    "@mui/icons-material": "^9.0.0",
+    "@mui/material": "^9.0.0",
     "@neo4j-nvl/base": "^1.1.0",
     "@neo4j-nvl/react": "^1.1.0",
     "@repo/modules": "*",
@@ -43,7 +42,7 @@
     "react-dom": "^19.2.4",
     "react-router": "^7.14.0",
     "swr": "^2.4.1",
-    "vite": "^8.0.3",
+    "vite": "^8.0.7",
     "zustand": "^5.0.12"
   }
 }

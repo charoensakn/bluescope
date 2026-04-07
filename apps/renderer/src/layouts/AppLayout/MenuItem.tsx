@@ -35,7 +35,7 @@ export function MenuItem({ icon, iconSelected, label, selected, onClick }: MenuI
           primary={label}
           slotProps={{
             primary: {
-              fontWeight: 'bold',
+              sx: { fontWeight: 'bold' },
             },
           }}
           sx={{

@@ -68,7 +68,7 @@ export function AppLayout() {
             onMenuItemClick={(key) => navigate(`/${key}/`)}
           />
         </SideBarPanel>
-        <Stack flex={1}>
+        <Stack sx={{ flex: 1 }}>
           <Stack
             sx={{
               width: { xs: 'calc(100vw - 80px - 1.5rem)', lg: 'calc(100vw - 287px - 1.5rem)' },
@@ -94,7 +94,7 @@ export function AppLayout() {
                 onMaximizeClick={() => window.browser.maximize()}
                 onCloseClick={() => window.browser.close()}
               />
-              <Stack direction="row" spacing={0.5} alignItems="center">
+              <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
                 {focusCaseId && (
                   <Typography variant="caption" color="primary" sx={{ fontSize: '0.625rem', lineHeight: '0.625rem' }}>
                     {getShortId(focusCaseId)}

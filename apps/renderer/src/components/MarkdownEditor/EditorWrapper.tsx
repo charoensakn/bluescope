@@ -58,6 +58,7 @@ export function EditorWrapper({ minHeight = 220, maxHeight, readonly, children, 
         marginTop: '1.5em',
         marginBottom: '1.5em',
         color: theme.palette.divider,
+        opacity: 0.6,
       },
 
       // Placeholder support

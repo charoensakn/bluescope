@@ -37,7 +37,7 @@ export function TitleBar({
           sx={{ textAlign: 'center', pr: { xs: 2, sm: 10 } }}
         >
           <SearchIcon fontSize="small" color="disabled" />
-          <Typography variant="body2" color="textSecondary" fontSize="small">
+          <Typography variant="body2" color="textSecondary" sx={{ fontSize: 'small' }}>
             {searchLabel ?? 'ui.search'}
           </Typography>
         </SearchBox>

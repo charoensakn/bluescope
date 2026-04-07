@@ -1,11 +1,12 @@
 import { Grid } from '@mui/material';
-import type { CaseWithRelatedData, StreamFn } from '@repo/modules';
+import type { CaseDescriptionLog, CaseEntityLog, CaseWithRelatedData } from '@repo/modules';
 import { useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
-import { CaseNotFound, Loading, PageHeader, type ReasoningMessage, SaveButton } from '../../components';
+import { CaseNotFound, Loading, PageHeader, Reasoning, type ReasoningMessage, SaveButton } from '../../components';
 import fetcher from '../../fetcher';
-import { useCaseStore, useUIStore } from '../../hooks';
+import { useCaseStore, useStreaming, useUIStore } from '../../hooks';
 import { m } from '../../paraglide/messages';
+import { getErrorMessage } from '../../utils';
 import { PaneEditor } from './PaneEditor';
 
 type History = {
@@ -22,116 +23,32 @@ export function RefinePage() {
   const { promptLocale } = useUIStore((state) => state);
   const [isSave, setIsSave] = useState(false);
   const firstLoad = useRef(true);
+  const [message, setMessage] = useState<ReasoningMessage>(null);
 
   const descriptionRef = useRef('');
   const descriptionDate = useRef(0);
   const descriptionHistory = useRef<History[]>([]);
-  const [defaultDescription, setDefaultDescription] = useState('');
-  const [descriptionDisabled, setDescriptionDisabled] = useState(false);
-  const [descriptionMessage, setDescriptionMessage] = useState<ReasoningMessage>(null);
 
   const entityRef = useRef('');
   const entityDate = useRef(0);
   const entityHistory = useRef<History[]>([]);
-  const [defaultEntity, setDefaultEntity] = useState('');
-  const [entityDisabled, setEntityDisabled] = useState(false);
-  const [entityMessage, setEntityMessage] = useState<ReasoningMessage>(null);
 
-  const descriptionRunId = useRef(crypto.randomUUID());
-  const entityRunId = useRef(crypto.randomUUID());
-
-  const handleSave = async () => {
-    if (!data) return;
-    setIsSave(false);
-    await window.case.update(data.id, {
-      description: descriptionRef.current,
-      entity: entityRef.current,
-    });
-    setIsSave(true);
-    mutate();
-  };
-
-  const handleRefineDescription = async (refine = true) => {
-    if (!data) return;
-    setDescriptionMessage(null);
-    try {
-      setDescriptionDisabled(true);
-      descriptionRunId.current = crypto.randomUUID();
-      const log = await window.refinement.refineDescription(descriptionRunId.current, {
-        caseId: data.id,
-        description: descriptionRef.current,
-        entity: refine ? entityRef.current : undefined,
-        thai: promptLocale === 'th',
-      });
-      if (log) {
-        setDefaultDescription(log.description);
-        descriptionRef.current = log.description;
-        descriptionDate.current = log.createdAt;
-      }
-    } finally {
-      setDescriptionDisabled(false);
-      mutate();
-    }
-  };
-
-  const handleRefineEntity = async (refine = true) => {
-    if (!data) return;
-    setEntityMessage(null);
-    try {
-      setEntityDisabled(true);
-      entityRunId.current = crypto.randomUUID();
-      const log = await window.refinement.refineEntity(entityRunId.current, {
-        caseId: data.id,
-        description: refine ? descriptionRef.current : undefined,
-        entity: entityRef.current,
-        thai: promptLocale === 'th',
-      });
-      if (log) {
-        setDefaultEntity(log.entity);
-        entityRef.current = log.entity;
-        entityDate.current = log.createdAt;
-      }
-    } finally {
-      setEntityDisabled(false);
-      mutate();
-    }
-  };
-
-  const handlePrevDescription = () => {
-    const prev = descriptionHistory.current.filter((h) => h.time < descriptionDate.current).slice(-1)[0];
-    if (prev) {
-      setDefaultDescription(prev.text);
-      descriptionRef.current = prev.text;
-      descriptionDate.current = prev.time;
-    }
-  };
-
-  const handleNextDescription = () => {
-    const next = descriptionHistory.current.find((h) => h.time > descriptionDate.current);
-    if (next) {
-      setDefaultDescription(next.text);
-      descriptionRef.current = next.text;
-      descriptionDate.current = next.time;
-    }
-  };
-
-  const handlePrevEntity = () => {
-    const prev = entityHistory.current.filter((h) => h.time < entityDate.current).slice(-1)[0];
-    if (prev) {
-      setDefaultEntity(prev.text);
-      entityRef.current = prev.text;
-      entityDate.current = prev.time;
-    }
-  };
-
-  const handleNextEntity = () => {
-    const next = entityHistory.current.find((h) => h.time > entityDate.current);
-    if (next) {
-      setDefaultEntity(next.text);
-      entityRef.current = next.text;
-      entityDate.current = next.time;
-    }
-  };
+  const {
+    text: descriptionDefault,
+    reasoningMessage: descriptionMessage,
+    isStreaming: isDescriptionRefining,
+    onStreaming: onDescriptionRefining,
+    setText: setDecriptionDefault,
+    generate: refineDescription,
+  } = useStreaming();
+  const {
+    text: entityDefault,
+    reasoningMessage: entityMessage,
+    isStreaming: isEntityRefining,
+    onStreaming: onEntityRefining,
+    setText: setEntityDefault,
+    generate: refineEntity,
+  } = useStreaming();
 
   useEffect(() => {
     if (!data) return;
@@ -163,46 +80,107 @@ export function RefinePage() {
     if (firstLoad.current) {
       firstLoad.current = false;
 
-      setDefaultDescription(data.description || '');
+      setDecriptionDefault(data.description || '');
       descriptionRef.current = data.description || '';
       descriptionDate.current = data.updatedAt;
 
-      setDefaultEntity(data.entity || '');
+      setEntityDefault(data.entity || '');
       entityRef.current = data.entity || '';
       entityDate.current = data.updatedAt;
     }
-  }, [data]);
+  }, [data, setDecriptionDefault, setEntityDefault]);
 
   useEffect(() => {
-    const onRefineDescription: StreamFn = (_event, runId, type, text) => {
-      if (runId !== descriptionRunId.current) return;
-      if (type === 'reason-begin') setDescriptionMessage({ message: '' });
-      else if (type === 'reason-stream')
-        setDescriptionMessage((prev) => (prev ? { ...prev, message: prev.message + (text ?? '') } : null));
-      else if (type === 'reason-end') setDescriptionMessage({ message: text ?? '' });
-      else if (type === 'text-begin') setDefaultDescription('');
-      else if (type === 'text-stream') setDefaultDescription((prev) => prev + (text ?? ''));
-      else if (type === 'text-end') setDefaultDescription(text ?? '');
-    };
-
-    const onRefineEntity: StreamFn = (_event, runId, type, text) => {
-      if (runId !== entityRunId.current) return;
-      if (type === 'reason-begin') setEntityMessage({ message: '' });
-      else if (type === 'reason-stream')
-        setEntityMessage((prev) => (prev ? { ...prev, message: prev.message + (text ?? '') } : null));
-      else if (type === 'reason-end') setEntityMessage({ message: text ?? '' });
-      else if (type === 'text-begin') setDefaultEntity('');
-      else if (type === 'text-stream') setDefaultEntity((prev) => prev + (text ?? ''));
-      else if (type === 'text-end') setDefaultEntity(text ?? '');
-    };
-
-    window.refinement.onRefineDescription(onRefineDescription);
-    window.refinement.onRefineEntity(onRefineEntity);
-
+    window.refinement.onRefineDescription(onDescriptionRefining);
+    window.refinement.onRefineEntity(onEntityRefining);
     return () => {
       window.browser.removeAllListeners();
     };
-  }, []);
+  }, [onDescriptionRefining, onEntityRefining]);
+
+  const handleSave = async () => {
+    if (!data) return;
+    setIsSave(false);
+    try {
+      await window.case.update(data.id, {
+        description: descriptionRef.current,
+        entity: entityRef.current,
+      });
+      setMessage({ severity: 'success', message: m.save_success() });
+      setIsSave(true);
+      mutate();
+    } catch (err) {
+      setMessage(getErrorMessage(err));
+    }
+  };
+
+  const handleRefineDescription = async (refine = true) => {
+    if (!data) return;
+    const log = (await refineDescription(window.refinement.refineDescription, {
+      caseId: data.id,
+      description: descriptionRef.current,
+      entity: refine ? entityRef.current : undefined,
+      thai: promptLocale === 'th',
+    })) as CaseDescriptionLog;
+    if (log) {
+      setDecriptionDefault(log.description);
+      descriptionRef.current = log.description;
+      descriptionDate.current = log.createdAt;
+    }
+    mutate();
+  };
+
+  const handleRefineEntity = async (refine = true) => {
+    if (!data) return;
+    const log = (await refineEntity(window.refinement.refineEntity, {
+      caseId: data.id,
+      description: refine ? descriptionRef.current : undefined,
+      entity: entityRef.current,
+      thai: promptLocale === 'th',
+    })) as CaseEntityLog;
+    if (log) {
+      setEntityDefault(log.entity);
+      entityRef.current = log.entity;
+      entityDate.current = log.createdAt;
+    }
+    mutate();
+  };
+
+  const handlePrevDescription = () => {
+    const prev = descriptionHistory.current.filter((h) => h.time < descriptionDate.current).slice(-1)[0];
+    if (prev) {
+      setDecriptionDefault(prev.text);
+      descriptionRef.current = prev.text;
+      descriptionDate.current = prev.time;
+    }
+  };
+
+  const handleNextDescription = () => {
+    const next = descriptionHistory.current.find((h) => h.time > descriptionDate.current);
+    if (next) {
+      setDecriptionDefault(next.text);
+      descriptionRef.current = next.text;
+      descriptionDate.current = next.time;
+    }
+  };
+
+  const handlePrevEntity = () => {
+    const prev = entityHistory.current.filter((h) => h.time < entityDate.current).slice(-1)[0];
+    if (prev) {
+      setEntityDefault(prev.text);
+      entityRef.current = prev.text;
+      entityDate.current = prev.time;
+    }
+  };
+
+  const handleNextEntity = () => {
+    const next = entityHistory.current.find((h) => h.time > entityDate.current);
+    if (next) {
+      setEntityDefault(next.text);
+      entityRef.current = next.text;
+      entityDate.current = next.time;
+    }
+  };
 
   if (isLoading) return <Loading />;
 
@@ -213,12 +191,13 @@ export function RefinePage() {
       <PageHeader title={m.refine_title()} subtitle={m.refine_subtitle()}>
         <SaveButton isSave={isSave} onClick={handleSave} />
       </PageHeader>
+      <Reasoning message={message} />
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, xl: 6 }}>
           <PaneEditor
             header={m.case_description()}
-            defaultMarkdown={defaultDescription}
-            disabled={descriptionDisabled}
+            defaultMarkdown={descriptionDefault}
+            disabled={isDescriptionRefining}
             message={descriptionMessage}
             onPrevClick={handlePrevDescription}
             onNextClick={handleNextDescription}
@@ -230,8 +209,8 @@ export function RefinePage() {
         <Grid size={{ xs: 12, xl: 6 }}>
           <PaneEditor
             header={m.case_entity()}
-            defaultMarkdown={defaultEntity}
-            disabled={entityDisabled}
+            defaultMarkdown={entityDefault}
+            disabled={isEntityRefining}
             message={entityMessage}
             onPrevClick={handlePrevEntity}
             onNextClick={handleNextEntity}

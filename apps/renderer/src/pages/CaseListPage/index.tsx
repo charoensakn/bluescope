@@ -79,7 +79,7 @@ export function CaseListPage() {
       {view === 'list' ? (
         <CaseTable cases={cases} />
       ) : (
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
           {cases.map((c) => (
             <CaseCard key={c.id} data={c} />
           ))}

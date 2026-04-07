@@ -32,11 +32,11 @@ export function SkillCard({ skill, types, isShowDescription, onSelected }: Skill
         }}
         onClick={() => onSelected?.(skill.id as SkillID, !selected)}
       >
-        <Box pt={0.2} mr={2} sx={{ height: 28 }}>
+        <Box sx={{ height: 28, pt: 0.2, mr: 2 }}>
           {selected ? <CheckBoxIcon color="primary" /> : <CheckBoxOutlineBlankIcon color="disabled" />}
         </Box>
         <Stack spacing={1}>
-          <Typography variant="body1" fontWeight="bold" color={selected ? 'primary' : 'textPrimary'}>
+          <Typography variant="body1" color={selected ? 'primary' : 'textPrimary'} sx={{ fontWeight: 'bold' }}>
             {skill.name}
           </Typography>
           {selectedType?.reason && (

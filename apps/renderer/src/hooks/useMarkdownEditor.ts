@@ -41,5 +41,14 @@ export function useMarkdownEditor(onUpdateContent?: (markdown: string) => void) 
     }
   });
 
-  return { editor, tick };
+  const getContent = () => {
+    if (!editor) return '';
+    try {
+      return editor.getMarkdown().replaceAll('&nbsp;', ' ').trim();
+    } catch {
+      return editor.getText().trim();
+    }
+  };
+
+  return { editor, tick, getContent };
 }

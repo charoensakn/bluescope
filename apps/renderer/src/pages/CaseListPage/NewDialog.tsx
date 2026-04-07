@@ -43,7 +43,7 @@ export function NewDialog({ open, onSubmit, onCancel }: NewDialogProps) {
       onSubmit={handleSubmit}
     >
       <Typography variant="body1">{m.cases_add_description()}</Typography>
-      <Box flex={1}>
+      <Box sx={{ flex: 1 }}>
         {editor && <MarkdownEditor editor={editor} tick={tick} minHeight={height} maxHeight={height} />}
       </Box>
     </FormDialog>

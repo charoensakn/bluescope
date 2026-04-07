@@ -62,8 +62,8 @@ export function FormDialog({
           backgroundColor: (theme) => (simple ? undefined : theme.palette.background.default),
         }}
       >
-        <Stack direction="row" alignItems="end">
-          <Typography flex={1} variant="body1" fontWeight="bold">
+        <Stack direction="row" sx={{ alignItems: 'end' }}>
+          <Typography variant="body1" sx={{ flex: 1, fontWeight: 'bold' }}>
             {title}
           </Typography>
           <IconButton size="small" onClick={() => onCancel?.()}>
@@ -92,7 +92,7 @@ export function FormDialog({
             >
               {checkLabel}
             </Button>
-            <Box flex={1} />
+            <Box sx={{ flex: 1 }} />
           </>
         )}
         {cancelLabel && <Button onClick={() => onCancel?.()}>{cancelLabel}</Button>}

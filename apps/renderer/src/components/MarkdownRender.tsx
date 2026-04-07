@@ -51,7 +51,7 @@ export function MarkdownRender({ content, collapsible, collapsedHeight = 200 }: 
           />
         )}
       </Box>
-      <Stack mt={0.5} justifyContent="center">
+      <Stack sx={{ justifyContent: 'center', mt: 0.5 }}>
         <Button
           color="inherit"
           disableRipple

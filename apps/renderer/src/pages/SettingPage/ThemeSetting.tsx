@@ -10,7 +10,7 @@ export function ThemeSetting() {
 
   return (
     <PaperWithHeader icon={<PaletteIcon color="primary" />} title={m.setting_theme(undefined, { locale })}>
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 2, sm: 4 }} alignItems="start">
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 2, sm: 4 }} sx={{ alignItems: 'start' }}>
         <ThemeField
           label={m.setting_light(undefined, { locale })}
           mode="light"

@@ -35,13 +35,13 @@ export function RecentCase({ cases }: RecentCaseProps) {
             <Stack
               key={c.id}
               direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-              py={1.5}
               spacing={2}
               onClick={() => handleClick(c)}
               sx={{
                 cursor: 'pointer',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                py: 1.5,
               }}
             >
               <Stack spacing={0.25} sx={{ flex: 1, maxWidth: { xs: 200, md: 400 } }}>
@@ -52,7 +52,7 @@ export function RecentCase({ cases }: RecentCaseProps) {
                   {c.title || m.no_title()}
                 </Typography>
               </Stack>
-              <Stack direction="row" alignItems="center" justifyContent="end" spacing={1} flexBasis={200}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'end', flexBasis: 200 }}>
                 {c.priority >= 1 && (
                   <Chip
                     label={getPriorityLabel(c.priority)}

@@ -1,9 +1,9 @@
 import ArchiveIcon from '@mui/icons-material/Archive';
 import DeleteIcon from '@mui/icons-material/Delete';
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
-import { Alert, Box, Button, Grid, Paper, Stack, TextField } from '@mui/material';
-import type { Case, StreamFn } from '@repo/modules';
-import { useEffect, useRef, useState } from 'react';
+import { Box, Button, Grid, Paper, Stack, TextField } from '@mui/material';
+import type { Case } from '@repo/modules';
+import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import {
   AIButton,
@@ -20,83 +20,60 @@ import {
   SelectField,
 } from '../../components';
 import fetcher from '../../fetcher';
-import { useCaseStore, useMarkdownEditor, useUIStore } from '../../hooks';
+import { useCaseStore, useMarkdownEditor, useStreaming, useUIStore } from '../../hooks';
 import { m } from '../../paraglide/messages';
+import { getErrorMessage, getSavedMessage } from '../../utils';
 import { DeleteDialog } from './DeleteDialog';
 import { MetaItem } from './MetaItem';
 
 export function DescriptionPage() {
   const { focusCaseId, setFocusCaseId } = useCaseStore((state) => state);
   const { data, mutate, isLoading } = useSWR<Case>(focusCaseId ? `case:${focusCaseId}` : null, fetcher);
-  const { editor, tick } = useMarkdownEditor();
+  const { editor, tick, getContent } = useMarkdownEditor();
   const { promptLocale } = useUIStore((state) => state);
-
   const [status, setStatus] = useState(0);
   const [priority, setPriority] = useState(0);
   const [caseNumber, setCaseNumber] = useState('');
-  const [title, setTitle] = useState('');
-  const [titleStreaming, setTitleStreaming] = useState(false);
-  const [titleMessage, setTitleMessage] = useState<ReasoningMessage>(null);
-  const [summary, setSummary] = useState('');
-  const [summaryStreaming, setSummaryStreaming] = useState(false);
-  const [summaryMessage, setSummaryMessage] = useState<ReasoningMessage>(null);
-  const [descriptionMessage, setDescriptionMessage] = useState('');
+  const [message, setMessage] = useState<ReasoningMessage>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isSave, setIsSave] = useState(false);
 
-  const titleRunId = useRef(crypto.randomUUID());
-  const summaryRunId = useRef(crypto.randomUUID());
-
-  const description = () => {
-    if (!data || !editor) return '';
-    const text = editor.getText().trim();
-    let content: string;
-    try {
-      content = editor.getMarkdown().replaceAll('&nbsp;', ' ');
-    } catch {
-      content = text;
-    }
-    return content;
-  };
+  const {
+    text: title,
+    reasoningMessage: titleMessage,
+    isStreaming: isTitleStreaming,
+    onStreaming: onTitle,
+    generate: generateTitle,
+    setText: setTitle,
+  } = useStreaming();
+  const {
+    text: summary,
+    reasoningMessage: summaryMessage,
+    isStreaming: isSummaryStreaming,
+    onStreaming: onSummary,
+    generate: generateSummary,
+    setText: setSummary,
+  } = useStreaming();
 
   useEffect(() => {
     if (!data) return;
     setStatus(data.status ?? 0);
     setPriority(data.priority ?? 0);
     setCaseNumber(data.caseNumber ?? '');
-    setTitle(data.title ?? '');
-    setSummary(data.summary ?? '');
+    if (data.deletedAt) {
+      setMessage({ severity: 'warning', message: m.cases_archive_description() });
+    } else {
+      setMessage((prev) => (prev && prev.severity === 'warning' ? null : prev));
+    }
+  }, [data]);
 
-    const onTitle: StreamFn = (_event, runId, type, text) => {
-      if (runId !== titleRunId.current) return;
-
-      if (type === 'reason-begin') setTitleMessage({ message: '' });
-      else if (type === 'reason-stream')
-        setTitleMessage((prev) => (prev ? { ...prev, message: prev.message + (text ?? '') } : null));
-      else if (type === 'reason-end') setTitleMessage({ message: text ?? '' });
-      else if (type === 'text-begin') setTitle('');
-      else if (type === 'text-stream') setTitle((prev) => prev + (text ?? ''));
-      else if (type === 'text-end') setTitle(text ?? '');
-    };
-
-    const onSummary: StreamFn = (_event, runId, type, text) => {
-      if (runId !== summaryRunId.current) return;
-
-      if (type === 'reason-begin') setSummaryMessage({ message: '' });
-      else if (type === 'reason-stream')
-        setSummaryMessage((prev) => (prev ? { ...prev, message: prev.message + (text ?? '') } : null));
-      else if (type === 'reason-end') setSummaryMessage({ message: text ?? '' });
-      else if (type === 'text-begin') setSummary('');
-      else if (type === 'text-stream') setSummary((prev) => prev + (text ?? ''));
-      else if (type === 'text-end') setSummary(text ?? '');
-    };
-
+  useEffect(() => {
     window.description.onGenerateTitle(onTitle);
     window.description.onSummarize(onSummary);
     return () => {
       window.browser.removeAllListeners();
     };
-  }, [data]);
+  }, [onTitle, onSummary]);
 
   useEffect(() => {
     if (data && editor) {
@@ -104,81 +81,67 @@ export function DescriptionPage() {
     }
   }, [data, editor]);
 
-  const handleGenerateTitle = async () => {
-    setTitleMessage(null);
-    try {
-      setTitleStreaming(true);
-      await window.description.generateTitle(titleRunId.current, {
-        description: description(),
-        thai: promptLocale === 'th',
-      });
-    } catch (err) {
-      setTitleMessage({ severity: 'error', message: (err as Error).message || m.unknown() });
-    } finally {
-      setTitleStreaming(false);
-    }
-  };
+  const handleGenerateTitle = async () =>
+    generateTitle(window.description.generateTitle, {
+      description: getContent(),
+      thai: promptLocale === 'th',
+    });
 
-  const handleGenerateSummary = async () => {
-    if (!data) return;
-    setSummaryMessage(null);
-    try {
-      setSummaryStreaming(true);
-      await window.description.summarize(summaryRunId.current, {
-        description: description(),
-        thai: promptLocale === 'th',
-      });
-    } catch (err) {
-      setSummaryMessage({ severity: 'error', message: (err as Error).message || m.unknown() });
-    } finally {
-      setSummaryStreaming(false);
-    }
-  };
+  const handleGenerateSummary = async () =>
+    generateSummary(window.description.summarize, {
+      description: getContent(),
+      thai: promptLocale === 'th',
+    });
 
   const handleSave = async () => {
     if (!data || !editor) return;
-    setDescriptionMessage('');
     setIsSave(false);
-    const text = editor.getText().trim();
-    let content: string;
     try {
-      content = editor.getMarkdown().replaceAll('&nbsp;', ' ');
-    } catch {
-      content = text;
-    }
-    if (!content) {
-      setDescriptionMessage(m.description_empty());
-      return;
-    } else {
-      await window.case.update(data.id, {
-        status,
-        priority,
-        caseNumber,
-        title,
-        summary,
-        description: content,
-      });
-      setIsSave(true);
-      mutate();
+      const content = getContent();
+      if (!content) {
+        setMessage({ severity: 'error', message: m.description_empty() });
+        return;
+      } else {
+        await window.case.update(data.id, {
+          status,
+          priority,
+          caseNumber,
+          title,
+          summary,
+          description: content,
+        });
+        if (!data.deletedAt) setMessage(getSavedMessage());
+        setIsSave(true);
+        mutate();
+      }
+    } catch (err) {
+      setMessage(getErrorMessage(err));
     }
   };
 
   const handleDelete = async () => {
     if (!data) return;
     setDeleteDialogOpen(false);
-    await window.case.delete(data.id);
-    setFocusCaseId(null);
+    try {
+      await window.case.delete(data.id);
+      setFocusCaseId(null);
+    } catch (err) {
+      setMessage(getErrorMessage(err));
+    }
   };
 
-  const handleArchive = async () => {
+  const _handleArchive = async () => {
     if (!data) return;
-
-    if (data.deletedAt) {
-      await window.case.unarchive(data.id);
-    } else {
-      await window.case.archive(data.id);
+    try {
+      if (data.deletedAt) {
+        await window.case.unarchive(data.id);
+      } else {
+        await window.case.archive(data.id);
+      }
+      mutate();
+    } catch (err) {
+      setMessage(getErrorMessage(err));
     }
-    mutate();
   };
 
   if (isLoading) return <Loading />;
@@ -194,6 +157,8 @@ export function DescriptionPage() {
         <SaveButton isSave={isSave} onClick={handleSave} />
       </PageHeader>
 
+      <Reasoning message={message} />
+
       <Paper elevation={1} sx={{ p: 2, borderRadius: 4 }}>
         <CaseStatus status={status} onChange={(status) => setStatus(status)} />
       </Paper>
@@ -205,13 +170,12 @@ export function DescriptionPage() {
             variant="outlined"
             startIcon={data.deletedAt ? <UnarchiveIcon /> : <ArchiveIcon />}
             size="small"
-            onClick={handleArchive}
+            onClick={_handleArchive}
           >
             {data.deletedAt ? m.cases_unarchive() : m.cases_archive()}
           </Button>
         }
       >
-        {data.deletedAt && <Alert severity="warning">{m.cases_archive_description()}</Alert>}
         <Grid container spacing={2}>
           <Grid size={12}>
             <MetaItem label={m.case_id()} value={data.id} />
@@ -251,7 +215,7 @@ export function DescriptionPage() {
           </Box>
         </Stack>
 
-        <AIButton isLoading={titleStreaming} variant="outlined" size="small" onClick={handleGenerateTitle}>
+        <AIButton isLoading={isTitleStreaming} variant="outlined" size="small" onClick={handleGenerateTitle}>
           {m.description_generate_title()}
         </AIButton>
         <Reasoning message={titleMessage} />
@@ -259,12 +223,12 @@ export function DescriptionPage() {
           label={m.case_title()}
           variant="outlined"
           value={title}
-          disabled={titleStreaming}
+          disabled={isTitleStreaming}
           onChange={(e) => setTitle(e.target.value)}
           sx={{ width: '100%' }}
         />
 
-        <AIButton isLoading={summaryStreaming} variant="outlined" size="small" onClick={handleGenerateSummary}>
+        <AIButton isLoading={isSummaryStreaming} variant="outlined" size="small" onClick={handleGenerateSummary}>
           {m.description_generate_summary()}
         </AIButton>
         <Reasoning message={summaryMessage} />
@@ -272,7 +236,7 @@ export function DescriptionPage() {
           label={m.case_summary()}
           variant="outlined"
           value={summary}
-          disabled={summaryStreaming}
+          disabled={isSummaryStreaming}
           onChange={(e) => setSummary(e.target.value)}
           multiline
           minRows={3}
@@ -281,10 +245,7 @@ export function DescriptionPage() {
       </PaperWithHeader>
 
       <PaperWithHeader title={m.case_description()}>
-        <Stack spacing={2}>
-          {descriptionMessage && <Alert severity="error">{descriptionMessage}</Alert>}
-          <MarkdownEditor editor={editor} tick={tick} />
-        </Stack>
+        <MarkdownEditor editor={editor} tick={tick} />
       </PaperWithHeader>
 
       <DeleteDialog open={deleteDialogOpen} onSubmit={handleDelete} onCancel={() => setDeleteDialogOpen(false)} />

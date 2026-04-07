@@ -38,14 +38,28 @@ export function PaperWithHeader({
         }}
       >
         {(icon || title || controls) && (
-          <Stack direction="row" alignItems="center" spacing={2} mb={1}>
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{
+              alignItems: 'center',
+              mb: 1,
+            }}
+          >
             {icon && (
-              <Box alignSelf="flex-start" height="100%" display="flex" alignItems="center">
+              <Box
+                sx={{
+                  alignSelf: 'flex-start',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
                 {icon}
               </Box>
             )}
             {title && (
-              <Stack flex={0.6} spacing={1}>
+              <Stack spacing={1} sx={{ flex: 0.6 }}>
                 {title && (
                   <Typography variant="h4" color="primary">
                     {title}
@@ -59,7 +73,14 @@ export function PaperWithHeader({
               </Stack>
             )}
             {controls && (
-              <Stack flex={0.4} direction="row" justifyContent="end" spacing={1}>
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{
+                  flex: 0.4,
+                  justifyContent: 'end',
+                }}
+              >
                 {controls}
               </Stack>
             )}

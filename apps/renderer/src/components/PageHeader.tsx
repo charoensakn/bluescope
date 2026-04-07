@@ -10,15 +10,17 @@ export type PageHeaderProps = {
 export function PageHeader({ header, title, subtitle, children }: PropsWithChildren<PageHeaderProps>) {
   return (
     <Stack direction={{ xs: 'column', md: 'row' }} spacing={1}>
-      <Stack flex={1} spacing={1}>
+      <Stack spacing={1} sx={{ flex: 1 }}>
         {header && (
           <Typography
             variant="caption"
             color="secondary"
-            textTransform="uppercase"
-            fontWeight="bold"
-            fontSize="0.65rem"
-            letterSpacing={1}
+            sx={{
+              textTransform: 'uppercase',
+              fontWeight: 'bold',
+              fontSize: '0.65rem',
+              letterSpacing: 1,
+            }}
           >
             {header}
           </Typography>
@@ -35,12 +37,18 @@ export function PageHeader({ header, title, subtitle, children }: PropsWithChild
         )}
       </Stack>
       {children && (
-        <Box flexBasis={{ xs: 'auto', md: 300 }} display="flex" alignItems="flex-end" pb={1}>
+        <Box
+          sx={{
+            flexBasis: { xs: 'auto', md: 300 },
+            display: 'flex',
+            alignItems: 'flex-end',
+            pb: 1,
+          }}
+        >
           <Stack
             direction={{ xs: 'row-reverse', md: 'row' }}
-            justifyContent={{ xs: 'start', md: 'end' }}
-            flex={1}
             spacing={1}
+            sx={{ justifyContent: { xs: 'start', md: 'end', flex: 1 } }}
           >
             {children}
           </Stack>

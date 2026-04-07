@@ -57,10 +57,12 @@ export function ProviderCard({
           <Typography
             variant="caption"
             color="primary"
-            textTransform="uppercase"
-            fontWeight="bold"
-            fontSize="0.65rem"
-            letterSpacing={1}
+            sx={{
+              textTransform: 'uppercase',
+              fontWeight: 'bold',
+              fontSize: '0.65rem',
+              letterSpacing: 1,
+            }}
           >
             {shortId}
           </Typography>
@@ -74,7 +76,7 @@ export function ProviderCard({
         }
       />
       <CardContent>
-        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
           {provider.titleAgent && <Chip variant="outlined" label={m.agent_title(undefined, { locale })} />}
           {provider.summaryAgent && <Chip variant="outlined" label={m.agent_summary(undefined, { locale })} />}
           {provider.descriptionRefinementAgent && (
@@ -96,11 +98,11 @@ export function ProviderCard({
         </Stack>
       </CardContent>
       <CardActions>
-        <Stack direction="row" spacing={1} width="100%" px={1} pb={1}>
+        <Stack direction="row" spacing={1} sx={{ width: '100%', px: 1, pb: 1 }}>
           <Button disabled={provider.default} size="small" onClick={() => onMakeDefaultClick?.()}>
             {m.setting_make_default(undefined, { locale })}
           </Button>
-          <Box flex={1} />
+          <Box sx={{ flex: 1 }} />
           <Button variant="outlined" startIcon={<EditIcon />} size="small" onClick={() => onEditClick?.()}>
             {m.edit(undefined, { locale })}
           </Button>

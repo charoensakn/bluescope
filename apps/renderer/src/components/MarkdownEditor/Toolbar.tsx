@@ -54,8 +54,7 @@ export function Toolbar({ editor, tick }: ToolbarProps) {
       <Stack
         direction="row"
         spacing={0.5}
-        alignItems="center"
-        sx={{ px: 1, py: 0.5, borderBottom: 1, borderColor: 'divider', flexWrap: 'wrap' }}
+        sx={{ px: 1, py: 0.5, borderBottom: 1, borderColor: 'divider', flexWrap: 'wrap', alignItems: 'center' }}
       >
         <ToolbarButton label={m.bold()} active={actives.bold} onClick={() => editor.chain().focus().toggleBold().run()}>
           <FormatBoldIcon fontSize="small" />
@@ -80,7 +79,7 @@ export function Toolbar({ editor, tick }: ToolbarProps) {
               active={actives[`heading${level}`]}
               onClick={() => editor.chain().focus().toggleHeading({ level }).run()}
             >
-              <Typography variant="caption" fontWeight="bold" sx={{ lineHeight: 1, fontSize: 16, p: 0.2 }}>
+              <Typography variant="caption" sx={{ lineHeight: 1, fontSize: 16, p: 0.2, fontWeight: 'bold' }}>
                 H{level}
               </Typography>
             </ToolbarButton>

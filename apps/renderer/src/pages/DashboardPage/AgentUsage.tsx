@@ -19,38 +19,32 @@ export type AgentUsageProps = {
 export function AgentUsage({ usages }: AgentUsageProps) {
   return (
     <PaperWithHeader title={m.dashboard_usage_logs()}>
-      <Stack direction="row" spacing={1} justifyContent="end">
-        <Typography variant="body1" color="textSecondary" width={120} textAlign="end" fontWeight="bold">
+      <Stack direction="row" spacing={1} sx={{ justifyContent: 'end' }}>
+        <Typography variant="body1" color="textSecondary" sx={{ textAlign: 'end', fontWeight: 'bold', width: 120 }}>
           {m.dashboard_input_tokens()}
         </Typography>
-        <Typography variant="body1" color="textSecondary" width={120} textAlign="end" fontWeight="bold">
+        <Typography variant="body1" color="textSecondary" sx={{ textAlign: 'end', fontWeight: 'bold', width: 120 }}>
           {m.dashboard_output_tokens()}
         </Typography>
         <Typography
           variant="body1"
           color="textSecondary"
-          width={120}
-          textAlign="end"
-          fontWeight="bold"
-          display={{ xs: 'none', md: 'inline' }}
+          sx={{ display: { xs: 'none', md: 'inline' }, textAlign: 'end', fontWeight: 'bold', width: 120 }}
         >
           {m.total()}
         </Typography>
         <Typography
           variant="body1"
           color="textSecondary"
-          width={100}
-          textAlign="end"
-          fontWeight="bold"
-          display={{ xs: 'none', md: 'inline' }}
+          sx={{ display: { xs: 'none', md: 'inline' }, textAlign: 'end', fontWeight: 'bold', width: 100 }}
         >
           {m.call()}
         </Typography>
       </Stack>
       {usages?.map((row) => (
         <Stack key={row.agentName} spacing={0.75}>
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <Typography variant="body2" flexBasis={180}>
+          <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ flexBasis: 180 }}>
               {row.agentName}
             </Typography>
 
@@ -97,22 +91,23 @@ export function AgentUsage({ usages }: AgentUsageProps) {
               </Tooltip>
             </Box>
 
-            <Stack direction="row" spacing={1} justifyContent="end">
-              <Typography variant="caption" color="primary" width={120} textAlign="end">
+            <Stack direction="row" spacing={1} sx={{ justifyContent: 'end' }}>
+              <Typography variant="caption" color="primary" sx={{ width: 120, textAlign: 'end' }}>
                 {numFmt.format(row.input)}
               </Typography>
-              <Typography variant="caption" color="secondary" width={120} textAlign="end">
+              <Typography variant="caption" color="secondary" sx={{ width: 120, textAlign: 'end' }}>
                 {numFmt.format(row.output)}
               </Typography>
-              <Typography variant="caption" width={120} textAlign="end" display={{ xs: 'none', md: 'inline' }}>
+              <Typography
+                variant="caption"
+                sx={{ width: 120, textAlign: 'end', display: { xs: 'none', md: 'inline' } }}
+              >
                 {numFmt.format(row.total)}
               </Typography>
               <Typography
                 variant="caption"
                 color="textSecondary"
-                width={100}
-                textAlign="end"
-                display={{ xs: 'none', md: 'inline' }}
+                sx={{ width: 100, textAlign: 'end', display: { xs: 'none', md: 'inline' } }}
               >
                 {numFmt.format(row.calls)}
               </Typography>

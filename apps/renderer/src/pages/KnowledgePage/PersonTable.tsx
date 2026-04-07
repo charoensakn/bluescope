@@ -49,12 +49,12 @@ export function PersonTable({ rows, message, isRefreshing, onRefresh }: PersonTa
         {Array.isArray(rows) &&
           rows.map((row) => (
             <TableRow key={row.createdAt} hover>
-              <TableCellText fontWeight="bold">{row.id || '-'}</TableCellText>
-              <TableCellText fontWeight="bold">{row.name || '-'}</TableCellText>
+              <TableCellText sx={{ fontWeight: 'bold' }}>{row.id || '-'}</TableCellText>
+              <TableCellText sx={{ fontWeight: 'bold' }}>{row.name || '-'}</TableCellText>
               <TableCellChip labels={row.types} />
               <TableCellText>{row.personDetails || '-'}</TableCellText>
               <TableCellText>{row.condition || '-'}</TableCellText>
-              <TableCellText fontWeight="bold" mono>
+              <TableCellText mono sx={{ fontWeight: 'bold' }}>
                 {(row.confidence || 0).toFixed(2)}
               </TableCellText>
             </TableRow>

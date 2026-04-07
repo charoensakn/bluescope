@@ -12,7 +12,7 @@ BlueScope is a local-first, cross-platform Electron desktop application that ass
 |---|---|
 | Desktop shell | Electron + Electron Forge |
 | Frontend | React 19 + TypeScript + Vite |
-| UI components | Material UI v7 |
+| UI components | Material UI v9 |
 | Routing | React Router v7 |
 | State management | Zustand |
 | Database | SQLite (`better-sqlite3`) + Drizzle ORM |

@@ -1,11 +1,3 @@
-import { app } from 'electron';
-import started from 'electron-squirrel-startup';
-
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (started) {
-  app.quit();
-}
-
 import fs from 'node:fs';
 import path from 'node:path';
 import {
@@ -27,6 +19,7 @@ import {
 } from '@repo/modules';
 import { connect, migrate } from '@repo/repos';
 import {
+  app,
   BaseWindow,
   BrowserWindow,
   ImageView,
@@ -37,6 +30,12 @@ import {
   nativeTheme,
   shell,
 } from 'electron';
+import started from 'electron-squirrel-startup';
+
+// Handle creating/removing shortcuts on Windows when installing/uninstalling.
+if (started) {
+  app.quit();
+}
 
 const windowStatePath = path.join(app.getPath('userData'), 'window-state.json');
 const splashPath = path.join(app.getAppPath(), 'public', 'splash.png');

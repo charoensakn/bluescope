@@ -1,7 +1,7 @@
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Button, Grid, Stack, TextField } from '@mui/material';
-import type { Preset, Provider, StreamFn } from '@repo/modules';
-import { useEffect, useRef, useState } from 'react';
+import type { Preset, Provider } from '@repo/modules';
+import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import {
   AIButton,
@@ -12,12 +12,11 @@ import {
   PageHeader,
   PaperWithHeader,
   Reasoning,
-  type ReasoningMessage,
   SaveButton,
   SelectField,
 } from '../../components';
 import fetcher from '../../fetcher';
-import { useCaseStore, useMarkdownEditor, useUIStore } from '../../hooks';
+import { useCaseStore, useMarkdownEditor, useStreaming, useUIStore } from '../../hooks';
 import { m } from '../../paraglide/messages';
 import { getProviderName } from '../../utils';
 import { demo1 } from './demo1';
@@ -27,12 +26,8 @@ import { demo3 } from './demo3';
 export function DevPage() {
   const focusCaseId = useCaseStore((state) => state.focusCaseId);
   const locale = useUIStore((state) => state.promptLocale);
-  const { editor, tick } = useMarkdownEditor();
-
+  const { editor, tick, getContent } = useMarkdownEditor();
   const [providerId, setProviderId] = useState<string>('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatingMessage, setGeneratingMessage] = useState<ReasoningMessage>(null);
-  const [content, setContent] = useState('');
   const [isSave, setIsSave] = useState(false);
   const [selectedPresetId, setSelectedPresetId] = useState<string>('new');
   const [presetName, setPresetName] = useState<string>('');
@@ -41,25 +36,14 @@ export function DevPage() {
   const { data: providers, isLoading: isProvidersLoading } = useSWR<Provider[]>('provider:getAll', fetcher);
   const { data: presets, isLoading: isPresetsLoading, mutate } = useSWR<Preset[]>('preset:getAll', fetcher);
 
-  const devRunId = useRef(crypto.randomUUID());
+  const { generate, isStreaming, text, reasoningMessage, onStreaming, setReasoningMessage } = useStreaming();
 
   useEffect(() => {
-    const onGenerate: StreamFn = (_event, runId, type, text) => {
-      if (runId !== devRunId.current) return;
-      if (type === 'reason-begin') setGeneratingMessage({ message: '' });
-      else if (type === 'reason-stream')
-        setGeneratingMessage((prev) => (prev ? { ...prev, message: prev.message + (text ?? '') } : null));
-      else if (type === 'reason-end') setGeneratingMessage({ message: text ?? '' });
-      else if (type === 'text-begin') setContent('');
-      else if (type === 'text-stream') setContent((prev) => prev + (text ?? ''));
-      else if (type === 'text-end') setContent(text ?? '');
-    };
-
-    window.dev.onGenerate(onGenerate);
+    window.dev.onGenerate(onStreaming);
     return () => {
       window.browser.removeAllListeners();
     };
-  }, []);
+  }, [onStreaming]);
 
   useEffect(() => {
     if (editor) {
@@ -119,14 +103,14 @@ export function DevPage() {
       await window.preset.update(existing.id, {
         name: presetName,
         providerId,
-        prompt: editor.getMarkdown().replaceAll('&nbsp;', ' ') || '',
+        prompt: getContent(),
       });
       mutate();
     } else {
       const newPreset = await window.preset.create({
         name: presetName,
         providerId,
-        prompt: editor.getMarkdown().replaceAll('&nbsp;', ' ') || '',
+        prompt: getContent(),
       });
       mutate();
       setTimeout(() => {
@@ -144,24 +128,21 @@ export function DevPage() {
     mutate();
   };
 
-  const handleGenerate = async () => {
-    setIsGenerating(true);
-    setGeneratingMessage(null);
-    try {
-      await window.dev.generate(devRunId.current, {
-        caseId: focusCaseId,
-        providerId,
-        thai: locale === 'th',
-        system: editor?.getMarkdown(),
-      });
-    } catch (err) {
-      setGeneratingMessage({
+  const handleGenerate = () => {
+    if (!getContent()) {
+      setReasoningMessage({
         severity: 'error',
-        message: (err as Error).message,
+        message: m.dev_missing_system_prompt(),
       });
-    } finally {
-      setIsGenerating(false);
+      return;
     }
+
+    return generate(window.dev.generate, {
+      caseId: focusCaseId,
+      providerId,
+      thai: locale === 'th',
+      system: getContent(),
+    });
   };
 
   if (isProvidersLoading || isPresetsLoading) {
@@ -183,7 +164,7 @@ export function DevPage() {
                 title={m.dev_presets()}
                 subtitle={m.dev_presets_description()}
                 controls={
-                  <Stack direction="row" spacing={1} alignItems="center">
+                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                     <Button
                       variant="outlined"
                       size="small"
@@ -262,13 +243,13 @@ export function DevPage() {
             title={m.dev_result()}
             subtitle={m.dev_result_description()}
             controls={
-              <AIButton isLoading={isGenerating} size="small" onClick={handleGenerate}>
+              <AIButton isLoading={isStreaming} size="small" onClick={handleGenerate}>
                 {m.refresh()}
               </AIButton>
             }
           >
-            <Reasoning message={generatingMessage} />
-            <MarkdownRender content={content} />
+            <Reasoning message={reasoningMessage} />
+            <MarkdownRender content={text} />
           </PaperWithHeader>
         </Grid>
       </Grid>

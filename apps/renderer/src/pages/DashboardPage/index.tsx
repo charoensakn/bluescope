@@ -217,7 +217,7 @@ export function DashboardPage() {
               <Stack spacing={1.5}>
                 {priorityData.map((p) => (
                   <Stack key={p.label} spacing={0.5}>
-                    <Stack direction="row" justifyContent="space-between">
+                    <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="textSecondary">
                         {p.label}
                       </Typography>
@@ -245,7 +245,7 @@ export function DashboardPage() {
             <PaperWithHeader title={m.dashboard_top_classifications()}>
               {classificationData.map((c) => (
                 <Stack key={c.name} spacing={1.25}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography
                       variant="body2"
                       color="textSecondary"

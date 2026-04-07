@@ -11,7 +11,7 @@ export type TableCellHeadProps = {
 export function TableCellHead({ width, sortable, fullWidth, children, onSort }: PropsWithChildren<TableCellHeadProps>) {
   const [direction, setDirection] = useState<'asc' | 'desc' | null>(null);
   const header = (
-    <Typography variant="body1" fontWeight="bold" color="textSecondary">
+    <Typography variant="body1" color="textSecondary" sx={{ fontWeight: 'bold' }}>
       {children}
     </Typography>
   );

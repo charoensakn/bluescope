@@ -90,3 +90,17 @@ export function getPriorityProgressColor(priority: number) {
       return 'info';
   }
 }
+
+export function getErrorMessage(err: unknown) {
+  let message: string = m.unknown();
+  if (err instanceof Error) {
+    message = m.error({ message: err.message });
+  } else if (typeof err === 'string') {
+    message = m.error({ message: err });
+  }
+  return { severity: 'error' as 'error', message };
+}
+
+export function getSavedMessage() {
+  return { severity: 'success' as 'success', message: m.save_success() };
+}

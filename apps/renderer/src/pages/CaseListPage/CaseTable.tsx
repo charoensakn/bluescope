@@ -72,8 +72,7 @@ export function CaseTable({ cases }: CaseTableProps) {
           <TableRow key={row.id} hover sx={{ cursor: 'pointer' }} onClick={() => handleClick(row.id)}>
             <TableCellText
               color={focusCaseId === row.id ? 'primary.main' : 'text.primary'}
-              fontWeight="bold"
-              sx={{ textDecoration: row.deletedAt ? 'line-through' : 'none' }}
+              sx={{ textDecoration: row.deletedAt ? 'line-through' : 'none', fontWeight: 'bold' }}
             >
               {row.caseNumber || getShortId(row.id)}
             </TableCellText>
@@ -84,8 +83,7 @@ export function CaseTable({ cases }: CaseTableProps) {
             )}
             <TableCellText
               color={focusCaseId === row.id ? 'primary.main' : 'text.primary'}
-              fontWeight="bold"
-              sx={{ textDecoration: row.deletedAt ? 'line-through' : 'none' }}
+              sx={{ textDecoration: row.deletedAt ? 'line-through' : 'none', fontWeight: 'bold' }}
             >
               {row.title}
             </TableCellText>
@@ -100,8 +98,7 @@ export function CaseTable({ cases }: CaseTableProps) {
             <TableCellText
               color={focusCaseId === row.id ? 'primary.main' : 'text.primary'}
               mono
-              fontWeight="bold"
-              sx={{ textDecoration: row.deletedAt ? 'line-through' : 'none' }}
+              sx={{ textDecoration: row.deletedAt ? 'line-through' : 'none', fontWeight: 'bold' }}
             >
               {row.updatedAt ? new Date(row.updatedAt).toLocaleString('th-TH') : ''}
             </TableCellText>

@@ -10,7 +10,7 @@ export function TableCellChip({ color, labels }: TableCellChipProps) {
   const setLabels = Array.from(new Set(Array.isArray(labels) ? labels.filter(Boolean) : [labels].filter(Boolean)));
   return (
     <TableCell>
-      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+      <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
         {setLabels.map((label) => (
           <Chip
             key={label}

@@ -18,7 +18,7 @@ export function PaperGroup({ title, row, children }: PropsWithChildren<PaperGrou
         {!row ? (
           children
         ) : (
-          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+          <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
             {children}
           </Stack>
         )}

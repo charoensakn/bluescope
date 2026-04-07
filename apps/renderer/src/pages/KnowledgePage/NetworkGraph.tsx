@@ -216,7 +216,7 @@ export function NetworkGraph({
         }}
       >
         {legendItems.map((item) => (
-          <Stack key={item.type} direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
+          <Stack key={item.type} direction="row" spacing={1} sx={{ mb: 0.5, alignItems: 'center' }}>
             <Box
               sx={{
                 width: 10,
@@ -246,10 +246,10 @@ export function NetworkGraph({
             zIndex: 10,
           }}
         >
-          <Typography variant="body1" fontWeight="bold" fontSize="small">
+          <Typography variant="body1" sx={{ fontWeight: 'bold', fontSize: 'small' }}>
             {hoveredInfo.type}
           </Typography>
-          <Typography variant="body1" fontWeight="bold">
+          <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
             {hoveredInfo.label}
           </Typography>
         </Box>

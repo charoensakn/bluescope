@@ -9,19 +9,19 @@ export function NotFoundPage() {
   return (
     <Stack
       spacing={3}
-      alignItems="center"
-      justifyContent="center"
       sx={{
         height: '100%',
         textAlign: 'center',
         p: 3,
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
     >
-      <SearchOffIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 1 }} />
-      <Typography variant="h2" textAlign="center">
+      <SearchOffIcon sx={{ fontSize: 64, color: 'textSecondary', mb: 1 }} />
+      <Typography variant="h2" sx={{ textAlign: 'center' }}>
         {m.notfound_title()}
       </Typography>
-      <Typography variant="body1" color="text.secondary" textAlign="center" sx={{ maxWidth: 400 }}>
+      <Typography variant="body1" color="textSecondary" sx={{ maxWidth: 400, textAlign: 'center' }}>
         {m.notfound_subtitle()}
       </Typography>
 

@@ -8,10 +8,10 @@ export type MetaItemProps = {
 export function MetaItem({ label, value }: MetaItemProps) {
   return (
     <Stack spacing={0.25}>
-      <Typography variant="body1" color="textSecondary" fontWeight="bold" sx={{ textTransform: 'uppercase' }}>
+      <Typography variant="body1" color="textSecondary" sx={{ textTransform: 'uppercase', fontWeight: 'bold' }}>
         {label}
       </Typography>
-      <Typography variant="caption" fontWeight="bold">
+      <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
         {value}
       </Typography>
     </Stack>

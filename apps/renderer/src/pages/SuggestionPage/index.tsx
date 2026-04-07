@@ -17,16 +17,14 @@ import {
   type ReasoningMessage,
 } from '../../components';
 import fetcher from '../../fetcher';
-import { useCaseStore, useUIStore } from '../../hooks';
+import { useCaseStore, useStreaming, useUIStore } from '../../hooks';
 import { m } from '../../paraglide/messages';
+import { getErrorMessage } from '../../utils';
 import { ClearDialog } from './ClearDialog';
 
 export function SuggestionPage() {
   const [isClearDialogOpen, setClearDialogOpen] = useState(false);
   const [message, setMessage] = useState<ReasoningMessage>(null);
-  const [isSynthesizing, setIsSynthesizing] = useState(false);
-  const [synthesisMessage, setSynthesisMessage] = useState<ReasoningMessage>(null);
-  const [systhesisContent, setSynthesisContent] = useState('');
   const [suggestionLoadingMap, setSuggestionLoadingMap] = useState<Record<string, boolean>>({});
   const [suggestionMessageMap, setSuggestionMessageMap] = useState<Record<string, ReasoningMessage>>({});
   const [suggestionContentMap, setSuggestionContentMap] = useState<Record<string, string>>({});
@@ -34,8 +32,17 @@ export function SuggestionPage() {
   const { uiLocale, promptLocale } = useUIStore((state) => state);
   const focusCaseId = useCaseStore((state) => state.focusCaseId);
 
-  const synthesisRunId = useRef(crypto.randomUUID());
   const runIdToCaseType = useRef<Record<string, string>>({});
+
+  const {
+    text: systhesisContent,
+    reasoningMessage: synthesisMessage,
+    generate: synthesize,
+    onStreaming: onSynthesize,
+    isStreaming: isSynthesizing,
+    setText: setSynthesisContent,
+    setReasoningMessage: setSynthesisMessage,
+  } = useStreaming();
 
   const isRefreshing = isSynthesizing || Object.values(suggestionLoadingMap).some((v) => v);
 
@@ -59,7 +66,7 @@ export function SuggestionPage() {
   useEffect(() => {
     if (!synthesis) return;
     setSynthesisContent(synthesis.suggestion);
-  }, [synthesis]);
+  }, [synthesis, setSynthesisContent]);
 
   useEffect(() => {
     if (!suggestions) return;
@@ -80,17 +87,6 @@ export function SuggestionPage() {
   }, [suggestions]);
 
   useEffect(() => {
-    const onSynthesize: StreamFn = (_event, runId, type, text) => {
-      if (runId !== synthesisRunId.current) return;
-      if (type === 'reason-begin') setSynthesisMessage({ message: '' });
-      else if (type === 'reason-stream')
-        setSynthesisMessage((prev) => (prev ? { ...prev, message: prev.message + (text ?? '') } : null));
-      else if (type === 'reason-end') setSynthesisMessage({ message: text ?? '' });
-      else if (type === 'text-begin') setSynthesisContent('');
-      else if (type === 'text-stream') setSynthesisContent((prev) => prev + (text ?? ''));
-      else if (type === 'text-end') setSynthesisContent(text ?? '');
-    };
-
     const onSuggest: StreamFn = (_event, runId, type, text) => {
       const caseType = runIdToCaseType.current[runId];
       if (!caseType) return;
@@ -119,30 +115,15 @@ export function SuggestionPage() {
     return () => {
       window.browser.removeAllListeners();
     };
-  }, []);
+  }, [onSynthesize]);
 
   const handleSynthesis = async () => {
     if (!focusCaseId) return;
-    setIsSynthesizing(true);
-    setSynthesisMessage(null);
-    try {
-      await window.advisor.synthesize(synthesisRunId.current, {
-        caseId: focusCaseId,
-        thai: promptLocale === 'th',
-      });
-      // setSynthesisMessage({
-      //   severity: 'success',
-      //   message: m.suggestion_success(),
-      // });
-      mutateSynthesis();
-    } catch (err) {
-      setSynthesisMessage({
-        severity: 'error',
-        message: m.error({ message: (err as Error).message }),
-      });
-    } finally {
-      setIsSynthesizing(false);
-    }
+    await synthesize(window.advisor.synthesize, {
+      caseId: focusCaseId,
+      thai: promptLocale === 'th',
+    });
+    mutateSynthesis();
   };
 
   const handleSuggest = async (caseType: string) => {
@@ -165,7 +146,7 @@ export function SuggestionPage() {
     } catch (err) {
       setSuggestionMessageMap((prev) => ({
         ...prev,
-        [caseType]: { severity: 'error', message: m.error({ message: (err as Error).message }) },
+        [caseType]: getErrorMessage(err),
       }));
     } finally {
       setSuggestionLoadingMap((prev) => ({ ...prev, [caseType]: false }));
@@ -193,10 +174,7 @@ export function SuggestionPage() {
       mutateSuggestions();
       mutateSynthesis();
     } catch (err) {
-      setMessage({
-        severity: 'error',
-        message: m.error({ message: (err as Error).message }),
-      });
+      setMessage(getErrorMessage(err));
     } finally {
       setClearDialogOpen(false);
     }
@@ -216,10 +194,7 @@ export function SuggestionPage() {
         message: m.refresh_success(),
       });
     } catch (err) {
-      setMessage({
-        severity: 'error',
-        message: m.error({ message: (err as Error).message }),
-      });
+      setMessage(getErrorMessage(err));
     } finally {
       mutateSuggestions();
       mutateSynthesis();
@@ -228,8 +203,15 @@ export function SuggestionPage() {
 
   const handleToggleShow = async (caseType: string, showed: boolean) => {
     if (!focusCaseId) return;
-    await window.advisor.toggle(focusCaseId, caseType, !showed);
-    setSuggestionShowMap((prev) => ({ ...prev, [caseType]: showed }));
+    try {
+      await window.advisor.toggle(focusCaseId, caseType, !showed);
+      setSuggestionShowMap((prev) => ({ ...prev, [caseType]: showed }));
+    } catch (err) {
+      setSuggestionMessageMap((prev) => ({
+        ...prev,
+        [caseType]: getErrorMessage(err),
+      }));
+    }
   };
 
   if (isSkillsLoading || isTypesLoading || isSuggesionsLoading) return <Loading />;

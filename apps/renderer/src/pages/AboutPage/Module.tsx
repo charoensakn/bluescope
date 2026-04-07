@@ -21,36 +21,40 @@ export function Module({ name, version }: ModuleProps) {
 
   return (
     <Paper elevation={2} sx={{ px: 2, py: 1 }}>
-      <Stack direction="row" sx={{ py: 1 }} alignItems="center">
-        <Stack flex={{ xs: 0.5, md: 0.3 }} direction="row" spacing={2} alignItems="center">
+      <Stack direction="row" sx={{ py: 1, alignItems: 'center' }}>
+        <Stack direction="row" spacing={2} sx={{ flex: { xs: 0.5, md: 0.3 }, alignItems: 'center' }}>
           <Box
-            display="flex"
             sx={{
+              display: 'flex',
               backgroundColor,
               p: 0.75,
               borderRadius: 2,
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
-            alignItems="center"
-            justifyContent="center"
           >
             <ApiIcon fontSize="small" color={color} />
           </Box>
           <Typography
             variant="caption"
             color="textPrimary"
-            fontWeight="bold"
-            fontSize="0.875rem"
-            textTransform="uppercase"
+            sx={{
+              fontWeight: 'bold',
+              fontSize: '0.875rem',
+              textTransform: 'uppercase',
+            }}
           >
             {name || 'unknown'}
           </Typography>
         </Stack>
         <Typography
-          flex={{ xs: 0.5, md: 0.7 }}
           variant="caption"
           color="textSecondary"
-          fontWeight="bold"
-          fontSize="0.875rem"
+          sx={{
+            flex: { xs: 0.5, md: 0.7 },
+            fontWeight: 'bold',
+            fontSize: '0.875rem',
+          }}
         >
           {version || 'unknown'}
         </Typography>

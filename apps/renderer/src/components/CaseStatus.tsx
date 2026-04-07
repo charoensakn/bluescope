@@ -90,7 +90,7 @@ export function CaseStatus({ status, readonly, onChange }: CaseStatusProps) {
   }
 
   return (
-    <Stack direction="row" flexWrap="wrap" gap={1}>
+    <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1 }}>
       {colorList.map((color, i) => {
         const isSelected = (status & (1 << i)) > 0;
         return (
