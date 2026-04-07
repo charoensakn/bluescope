@@ -13,7 +13,6 @@
     "build": "npm run build:packages && npm run build:apps",
     "dist:packages": "turbo run dist --filter=@repo/*",
     "dist:apps": "turbo run dist --filter=main --filter=renderer",
-    "dist": "npm run dist:packages && npm run dist:apps && npm run make-version && npm run package",
     "clean:packages": "turbo run clean --filter=@repo/*",
     "clean:apps": "turbo run clean --filter=main --filter=renderer",
     "clean": "npm run clean:packages && npm run clean:apps && rimraf ./release",
@@ -29,7 +28,8 @@
     "dev": "dotenv -- turbo dev --filter=main --filter=renderer",
     "make:version": "node make-version.js",
     "start": "electron-forge start",
-    "package": "npm run make:version && electron-forge package",
+    "package": "electron-forge package",
+    "dist": "npm run dist:packages && npm run dist:apps && npm run make:version && npm run package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "postinstall": "npm run rebuild"

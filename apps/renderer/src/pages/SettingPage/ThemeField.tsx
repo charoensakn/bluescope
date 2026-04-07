@@ -49,8 +49,10 @@ export function ThemeField({ mode = 'system', label, selected, onClick }: ThemeF
       </Paper>
       <Typography
         variant="body1"
-        fontWeight={selected ? 'bold' : 'normal'}
         color={selected ? 'primary' : 'textSecondary'}
+        sx={{
+          fontWeight: selected ? 'bold' : 'normal',
+        }}
       >
         {label}
       </Typography>

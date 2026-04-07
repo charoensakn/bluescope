@@ -33,6 +33,7 @@ migrations
 renderer
 skills
 release
+version.json
 
 !apps/main
 !apps/renderer
