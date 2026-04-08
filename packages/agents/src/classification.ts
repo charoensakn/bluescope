@@ -5,19 +5,23 @@ import { loadSkills } from './utils';
 
 export class ClassificationAgent extends BaseAgent {
   private _skillMap = new Map<string, string>();
+  private _schema: z.ZodType | null = null;
 
   name() {
     return 'classification-v1';
   }
 
   output(_input: RunArgs): Output.Output {
-    return Output.array({
-      element: z.object({
-        id: z.string(),
-        reason: z.string(),
-        confidence: z.number(),
-      }),
+    this._schema = z.object({
+      results: z.array(
+        z.object({
+          id: z.string(),
+          reason: z.string(),
+          confidence: z.number(),
+        }),
+      ),
     });
+    return Output.json();
   }
 
   systemPrompt(input: RunArgs): string {
@@ -41,16 +45,17 @@ export class ClassificationAgent extends BaseAgent {
     return this.inputDescription(input);
   }
 
-  getOutput(): unknown {
-    const output = super.getOutput();
-    if (Array.isArray(output)) {
-      return output.map((item) => ({
+  async getOutput(): Promise<unknown> {
+    const json = await super.getOutput();
+    const results = await this.getJsonRepair().parseJson(json, this._schema);
+    if (typeof results === 'object' && 'results' in results && Array.isArray(results.results)) {
+      return results.results.map((item) => ({
         id: this._skillMap.get(item.id) || item.id,
         reason: item.reason,
         confidence: item.confidence,
       }));
     }
-    return output;
+    return [];
   }
 }
 
@@ -66,12 +71,16 @@ ${taxonomy}
 
 ## Output Requirements
 
-Your output must be **only** a JSON array. Each element must follow this schema:
+Your output must be **only** a single JSON object with the following structure:
 
 {
-  "id": "string",
-  "reason": "string",
-  "confidence": number
+  "results": [
+    {
+      "id": "string",
+      "reason": "string",
+      "confidence": number
+    }
+  ]
 }
 
 ## Classification Rules
@@ -81,5 +90,5 @@ Your output must be **only** a JSON array. Each element must follow this schema:
 - Do **not** invent new categories or IDs.
 - The **reason** must be a **concise, evidence-based explanation** grounded in the user input.  
 - The **confidence** must be a number between **0 and 1**, representing the model's confidence that the input belongs to this category.  
-- Output **only** the JSON array—no additional commentary, text, or formatting.
+- If no categories apply, return an empty results array.
 `;

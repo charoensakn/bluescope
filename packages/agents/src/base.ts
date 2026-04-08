@@ -1,4 +1,5 @@
 import { Output } from 'ai';
+import { JsonRepairAgent } from './json_repair';
 import { LLM, type OutputStream } from './llm';
 
 export type Suggestion = {
@@ -48,36 +49,52 @@ export abstract class BaseAgent {
 
   abstract userPrompt(input: RunArgs): string;
 
-  getReasoningText() {
+  async getReasoningText() {
     if (!this._llm.isRun) {
       throw new Error('LLM has not been run yet');
     }
+    await this._llm.done;
     return this._llm.reasoningText;
   }
 
-  getText() {
+  async getText() {
     if (!this._llm.isRun) {
       throw new Error('LLM has not been run yet');
     }
+    await this._llm.done;
     return this._llm.text;
   }
 
-  getOutput(): unknown {
+  async getOutput(): Promise<unknown> {
     if (!this._llm.isRun) {
       throw new Error('LLM has not been run yet');
     }
+    await this._llm.done;
     return this._llm.output;
   }
 
-  getUsage(): Usage {
+  async getUsage(): Promise<Usage> {
     if (!this._llm.isRun) {
       throw new Error('LLM has not been run yet');
     }
+    await this._llm.done;
     return {
       input: this._llm.inputUsage,
       output: this._llm.outputUsage,
       total: this._llm.totalUsage,
     };
+  }
+
+  getJsonRepair() {
+    return new JsonRepairAgent(
+      this.providerName,
+      this.model,
+      this.baseURL,
+      this.apiKey,
+      this.reasoning,
+      this.temperature,
+      this.maxOutputTokens,
+    );
   }
 
   runStream(input: RunArgs): OutputStream {

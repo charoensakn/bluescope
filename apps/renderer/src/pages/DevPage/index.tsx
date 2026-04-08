@@ -12,13 +12,14 @@ import {
   PageHeader,
   PaperWithHeader,
   Reasoning,
+  type ReasoningMessage,
   SaveButton,
   SelectField,
 } from '../../components';
 import fetcher from '../../fetcher';
 import { useCaseStore, useMarkdownEditor, useStreaming, useUIStore } from '../../hooks';
 import { m } from '../../paraglide/messages';
-import { getProviderName } from '../../utils';
+import { getErrorMessage, getProviderName } from '../../utils';
 import { demo1 } from './demo1';
 import { demo2 } from './demo2';
 import { demo3 } from './demo3';
@@ -32,11 +33,13 @@ export function DevPage() {
   const [selectedPresetId, setSelectedPresetId] = useState<string>('new');
   const [presetName, setPresetName] = useState<string>('');
   const [presetOptions, setPresetOptions] = useState<Record<string, string>>({});
+  const [presetMessage, setPresetMessage] = useState<ReasoningMessage>(null);
+  const [resultMessage, setResultMessage] = useState<ReasoningMessage>(null);
 
   const { data: providers, isLoading: isProvidersLoading } = useSWR<Provider[]>('provider:getAll', fetcher);
   const { data: presets, isLoading: isPresetsLoading, mutate } = useSWR<Preset[]>('preset:getAll', fetcher);
 
-  const { generate, isStreaming, text, reasoningMessage, onStreaming, setReasoningMessage } = useStreaming();
+  const { generate, isStreaming, text, reasoningMessage, onStreaming } = useStreaming();
 
   useEffect(() => {
     window.dev.onGenerate(onStreaming);
@@ -99,50 +102,86 @@ export function DevPage() {
     if (!editor) return;
     const existing = presets.find((p) => p.id === selectedPresetId);
     setIsSave(false);
-    if (existing) {
-      await window.preset.update(existing.id, {
-        name: presetName,
-        providerId,
-        prompt: getContent(),
-      });
-      mutate();
-    } else {
-      const newPreset = await window.preset.create({
-        name: presetName,
-        providerId,
-        prompt: getContent(),
-      });
-      mutate();
-      setTimeout(() => {
-        setSelectedPresetId(newPreset.id);
-      }, 500);
+    try {
+      if (existing) {
+        await window.preset.update(existing.id, {
+          name: presetName,
+          providerId,
+          prompt: getContent(),
+        });
+        setPresetMessage({
+          severity: 'success',
+          message: m.save_success(),
+        });
+        setIsSave(true);
+        mutate();
+      } else {
+        const newPreset = await window.preset.create({
+          name: presetName,
+          providerId,
+          prompt: getContent(),
+        });
+        setPresetMessage({
+          severity: 'success',
+          message: m.save_success(),
+        });
+        setIsSave(true);
+        mutate();
+        setTimeout(() => {
+          setSelectedPresetId(newPreset.id);
+        }, 500);
+      }
+    } catch (err) {
+      setPresetMessage(getErrorMessage(err));
     }
-
-    setIsSave(true);
   };
 
   const handleDeletePreset = async () => {
     if (!selectedPresetId) return;
-    await window.preset.remove(selectedPresetId);
-    handleSelectPreset('new');
-    mutate();
+    try {
+      await window.preset.remove(selectedPresetId);
+      handleSelectPreset('new');
+      setPresetMessage({
+        severity: 'success',
+        message: m.delete_success(),
+      });
+      mutate();
+    } catch (err) {
+      setPresetMessage(getErrorMessage(err));
+    }
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
+    if (!focusCaseId) return;
     if (!getContent()) {
-      setReasoningMessage({
+      setResultMessage({
         severity: 'error',
         message: m.dev_missing_system_prompt(),
       });
       return;
     }
-
-    return generate(window.dev.generate, {
-      caseId: focusCaseId,
-      providerId,
-      thai: locale === 'th',
-      system: getContent(),
-    });
+    setResultMessage(null);
+    try {
+      const result = await generate(window.dev.generate, {
+        caseId: focusCaseId,
+        providerId,
+        thai: locale === 'th',
+        system: getContent(),
+      });
+      if (result) {
+        setResultMessage({
+          severity: 'success',
+          message: m.dev_generate_success(),
+        });
+      } else {
+        setResultMessage({
+          severity: 'warning',
+          message: m.dev_generate_no_response(),
+        });
+      }
+    } catch (err) {
+      setResultMessage(getErrorMessage(err));
+    }
   };
 
   if (isProvidersLoading || isPresetsLoading) {
@@ -178,6 +217,7 @@ export function DevPage() {
                   </Stack>
                 }
               >
+                <Reasoning message={presetMessage} />
                 <SelectField
                   label={m.dev_preset_select()}
                   value={selectedPresetId}
@@ -249,6 +289,7 @@ export function DevPage() {
             }
           >
             <Reasoning message={reasoningMessage} />
+            <Reasoning message={resultMessage} />
             <MarkdownRender content={text} />
           </PaperWithHeader>
         </Grid>

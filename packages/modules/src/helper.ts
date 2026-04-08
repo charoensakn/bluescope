@@ -100,15 +100,15 @@ export async function runAgentStream<T>(
       await done;
 
       if (hasReasoning) {
-        event.sender.send(channel, runId, 'reason-end', agent.getReasoningText());
+        event.sender.send(channel, runId, 'reason-end', await agent.getReasoningText());
       }
       if (hasText) {
-        event.sender.send(channel, runId, 'text-end', agent.getText());
+        event.sender.send(channel, runId, 'text-end', await agent.getText());
       }
 
       if (db) {
         const usageLogRepo = new UsageLogRepo(db);
-        const usage = agent.getUsage();
+        const usage = await agent.getUsage();
         await usageLogRepo.create({
           agentName: agent.name(),
           provider: p.providerName,
@@ -118,7 +118,7 @@ export async function runAgentStream<T>(
           total: usage.total,
         });
       }
-      return agent.getOutput();
+      return await agent.getOutput();
     } catch (err) {
       errors.add((err as Error).message);
     }
@@ -149,7 +149,7 @@ export async function runAgent<T>(
       await agent.run(args);
       if (db) {
         const usageLogRepo = new UsageLogRepo(db);
-        const usage = agent.getUsage();
+        const usage = await agent.getUsage();
         await usageLogRepo.create({
           agentName: agent.name(),
           provider: p.providerName,
@@ -159,7 +159,9 @@ export async function runAgent<T>(
           total: usage.total,
         });
       }
-      return agent.getOutput();
+      const reasoning = await agent.getReasoningText();
+      const output = await agent.getOutput();
+      return { reasoning, output };
     } catch (err) {
       errors.add((err as Error).message);
     }

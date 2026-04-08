@@ -13,9 +13,10 @@ import {
   PageHeader,
   PaperWithHeader,
   Reasoning,
+  type ReasoningMessage,
 } from '../../components';
 import fetcher from '../../fetcher';
-import { useCaseStore, useGenerate, useUIStore } from '../../hooks';
+import { useCaseStore, useStreaming, useUIStore } from '../../hooks';
 import { m } from '../../paraglide/messages';
 import { baseMono } from '../../theme';
 import { getErrorMessage } from '../../utils';
@@ -34,8 +35,9 @@ export function ClassificationPage() {
   const [categories, setCategories] = useState<SkillCategory[]>([]);
   const [isClearDialogOpen, setClearDialogOpen] = useState(false);
   const [isShowDescription, setIsShowDescription] = useState(false);
+  const [message, setMessage] = useState<ReasoningMessage>(null);
 
-  const { generate, isGenerating, message, setMessage } = useGenerate();
+  const { generate, isStreaming, reasoningMessage, onStreaming } = useStreaming();
 
   const { data: skills, isLoading: isSkillsLoading } = useSWR<CaseSkill[]>('classification:getSkills', fetcher);
   const {
@@ -45,6 +47,13 @@ export function ClassificationPage() {
   } = useSWR<CaseType[]>(focusCaseId ? `classification:${focusCaseId}` : null, fetcher);
 
   const selectedSkills = new Set<string>(types ? types.filter((t) => !t.deletedAt).map((t) => t.caseType) : []);
+
+  useEffect(() => {
+    window.classification.onCategorize(onStreaming);
+    return () => {
+      window.browser.removeAllListeners();
+    };
+  }, [onStreaming]);
 
   useEffect(() => {
     if (!skills) return;
@@ -71,7 +80,7 @@ export function ClassificationPage() {
 
   const handleCategorize = async () => {
     if (!focusCaseId) return;
-
+    setMessage(null);
     const results = await generate(window.classification.categorize, {
       caseId: focusCaseId,
       thai: promptLocale === 'th',
@@ -133,10 +142,11 @@ export function ClassificationPage() {
         <Button variant="outlined" color="error" startIcon={<DeleteIcon />} onClick={() => setClearDialogOpen(true)}>
           {m.clear()}
         </Button>
-        <AIButton isLoading={isGenerating} onClick={handleCategorize}>
+        <AIButton isLoading={isStreaming} onClick={handleCategorize}>
           {m.categorize()}
         </AIButton>
       </PageHeader>
+      <Reasoning message={reasoningMessage} />
       <Reasoning message={message} />
       {types?.length > 0 && (
         <>

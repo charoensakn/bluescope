@@ -13,18 +13,20 @@ import { m } from '../../paraglide/messages';
 
 export type AssetTableProps = {
   rows?: Asset[];
+  reasoningMessage?: ReasoningMessage;
   message?: ReasoningMessage;
   isRefreshing?: boolean;
   onRefresh?: () => void;
 };
 
-export function AssetTable({ rows, message, isRefreshing, onRefresh }: AssetTableProps) {
+export function AssetTable({ rows, reasoningMessage, message, isRefreshing, onRefresh }: AssetTableProps) {
   return (
     <TableContainer
       rows={rows}
       icon={<ContentPasteIcon color="primary" />}
       title={m.assets()}
       subtitle={m.assets_description()}
+      reasoningMessage={reasoningMessage}
       message={message}
       isLoading={isRefreshing}
       controls={

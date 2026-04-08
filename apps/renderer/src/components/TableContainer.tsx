@@ -9,6 +9,7 @@ export type TableContainerProps = {
   icon?: React.ReactNode;
   title?: string;
   subtitle?: string;
+  reasoningMessage?: ReasoningMessage;
   message?: ReasoningMessage;
   isLoading?: boolean;
   controls?: React.ReactNode;
@@ -19,6 +20,7 @@ export function TableContainer({
   icon,
   title,
   subtitle,
+  reasoningMessage,
   message,
   isLoading,
   controls,
@@ -28,7 +30,8 @@ export function TableContainer({
 
   return (
     <PaperWithHeader container icon={icon} title={title} subtitle={subtitle} controls={controls}>
-      {message && <Reasoning message={message} />}
+      <Reasoning message={reasoningMessage} />
+      <Reasoning message={message} />
       {hasRows ? (
         <MuiTableContainer
           sx={{

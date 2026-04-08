@@ -20,7 +20,7 @@ import {
   type DB,
 } from '@repo/repos';
 import { ipcMain } from 'electron';
-import { runAgent } from './helper';
+import { runAgentStream, type StreamFn } from './helper';
 
 export type StructureArgs = {
   caseId?: string;
@@ -57,12 +57,14 @@ export type Event = Omit<CaseEvent, 'types'> & {
 };
 
 export function register(db: DB) {
-  async function extractPersons(event: Electron.IpcMainInvokeEvent, args: StructureArgs) {
+  async function extractPersons(event: Electron.IpcMainInvokeEvent, runId: string, args: StructureArgs) {
     const caseRepo = new CaseRepo(db);
     const { description, entity } = await caseRepo.getById(args.caseId);
-    const results = await runAgent(
+    const results = await runAgentStream(
       event,
+      runId,
       { description, entity, thai: args.thai, extract: 'person' },
+      'structure:extract',
       (p) => p.structureExtractionAgent,
       (...a) => new StructureExtractionAgent(...a),
       db,
@@ -84,12 +86,14 @@ export function register(db: DB) {
     return results;
   }
 
-  async function extractOrganizations(event: Electron.IpcMainInvokeEvent, args: StructureArgs) {
+  async function extractOrganizations(event: Electron.IpcMainInvokeEvent, runId: string, args: StructureArgs) {
     const caseRepo = new CaseRepo(db);
     const { description, entity } = await caseRepo.getById(args.caseId);
-    const results = await runAgent(
+    const results = await runAgentStream(
       event,
+      runId,
       { description, entity, thai: args.thai, extract: 'organization' },
+      'structure:extract',
       (p) => p.structureExtractionAgent,
       (...a) => new StructureExtractionAgent(...a),
       db,
@@ -110,12 +114,14 @@ export function register(db: DB) {
     return results;
   }
 
-  async function extractLocations(event: Electron.IpcMainInvokeEvent, args: StructureArgs) {
+  async function extractLocations(event: Electron.IpcMainInvokeEvent, runId: string, args: StructureArgs) {
     const caseRepo = new CaseRepo(db);
     const { description, entity } = await caseRepo.getById(args.caseId);
-    const results = await runAgent(
+    const results = await runAgentStream(
       event,
+      runId,
       { description, entity, thai: args.thai, extract: 'location' },
+      'structure:extract',
       (p) => p.structureExtractionAgent,
       (...a) => new StructureExtractionAgent(...a),
       db,
@@ -136,12 +142,14 @@ export function register(db: DB) {
     return results;
   }
 
-  async function extractAssets(event: Electron.IpcMainInvokeEvent, args: StructureArgs) {
+  async function extractAssets(event: Electron.IpcMainInvokeEvent, runId: string, args: StructureArgs) {
     const caseRepo = new CaseRepo(db);
     const { description, entity } = await caseRepo.getById(args.caseId);
-    const results = await runAgent(
+    const results = await runAgentStream(
       event,
+      runId,
       { description, entity, thai: args.thai, extract: 'asset' },
+      'structure:extract',
       (p) => p.structureExtractionAgent,
       (...a) => new StructureExtractionAgent(...a),
       db,
@@ -162,12 +170,14 @@ export function register(db: DB) {
     return results;
   }
 
-  async function extractDamages(event: Electron.IpcMainInvokeEvent, args: StructureArgs) {
+  async function extractDamages(event: Electron.IpcMainInvokeEvent, runId: string, args: StructureArgs) {
     const caseRepo = new CaseRepo(db);
     const { description, entity } = await caseRepo.getById(args.caseId);
-    const results = await runAgent(
+    const results = await runAgentStream(
       event,
+      runId,
       { description, entity, thai: args.thai, extract: 'damage' },
+      'structure:extract',
       (p) => p.structureExtractionAgent,
       (...a) => new StructureExtractionAgent(...a),
       db,
@@ -189,12 +199,14 @@ export function register(db: DB) {
     return results;
   }
 
-  async function extractEvidence(event: Electron.IpcMainInvokeEvent, args: StructureArgs) {
+  async function extractEvidence(event: Electron.IpcMainInvokeEvent, runId: string, args: StructureArgs) {
     const caseRepo = new CaseRepo(db);
     const { description, entity } = await caseRepo.getById(args.caseId);
-    const results = await runAgent(
+    const results = await runAgentStream(
       event,
+      runId,
       { description, entity, thai: args.thai, extract: 'evidence' },
+      'structure:extract',
       (p) => p.structureExtractionAgent,
       (...a) => new StructureExtractionAgent(...a),
       db,
@@ -215,12 +227,14 @@ export function register(db: DB) {
     return results;
   }
 
-  async function extractEvents(event: Electron.IpcMainInvokeEvent, args: StructureArgs) {
+  async function extractEvents(event: Electron.IpcMainInvokeEvent, runId: string, args: StructureArgs) {
     const caseRepo = new CaseRepo(db);
     const { description, entity } = await caseRepo.getById(args.caseId);
-    const results = await runAgent(
+    const results = await runAgentStream(
       event,
+      runId,
       { description, entity, thai: args.thai, extract: 'event' },
+      'structure:extract',
       (p) => p.structureExtractionAgent,
       (...a) => new StructureExtractionAgent(...a),
       db,
@@ -242,31 +256,31 @@ export function register(db: DB) {
     return results;
   }
 
-  function extract(event: Electron.IpcMainInvokeEvent, args: StructureArgs) {
+  function extract(event: Electron.IpcMainInvokeEvent, runId: string, args: StructureArgs) {
     if (!args.caseId) {
       throw new Error('caseId is required for extraction');
     }
     switch (args.extract) {
       case 'person':
-        return extractPersons(event, args);
+        return extractPersons(event, runId, args);
       case 'organization':
-        return extractOrganizations(event, args);
+        return extractOrganizations(event, runId, args);
       case 'location':
-        return extractLocations(event, args);
+        return extractLocations(event, runId, args);
       case 'asset':
-        return extractAssets(event, args);
+        return extractAssets(event, runId, args);
       case 'damage':
-        return extractDamages(event, args);
+        return extractDamages(event, runId, args);
       case 'evidence':
-        return extractEvidence(event, args);
+        return extractEvidence(event, runId, args);
       case 'event':
-        return extractEvents(event, args);
+        return extractEvents(event, runId, args);
       default:
         throw new Error(`Invalid extract type: ${args.extract}`);
     }
   }
 
-  async function analyze(event: Electron.IpcMainInvokeEvent, args: StructureArgs) {
+  async function analyze(event: Electron.IpcMainInvokeEvent, runId: string, args: StructureArgs) {
     if (!args.caseId) {
       throw new Error('caseId is required for analysis');
     }
@@ -353,9 +367,11 @@ export function register(db: DB) {
       })),
     });
 
-    const results = await runAgent(
+    const results = await runAgentStream(
       event,
+      runId,
       { description, entity, thai: args.thai },
+      'structure:analyze',
       (p) => p.linkAnalysisAgent,
       (...a) => new LinkAnalysisAgent(...a),
       db,
@@ -454,8 +470,10 @@ export function register(db: DB) {
 }
 
 export interface IStructure {
-  extract: (args: StructureArgs) => Promise<unknown>;
-  analyze: (args: StructureArgs) => Promise<unknown>;
+  extract: (runId: string, args: StructureArgs) => Promise<unknown>;
+  onExtract: (fn: StreamFn) => void;
+  analyze: (runId: string, args: StructureArgs) => Promise<unknown>;
+  onAnalyze: (fn: StreamFn) => void;
   getAllPersons: (caseId: string) => Promise<Person[]>;
   getAllOrganizations: (caseId: string) => Promise<Organization[]>;
   getAllLocations: (caseId: string) => Promise<Location[]>;

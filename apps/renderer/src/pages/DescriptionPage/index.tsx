@@ -60,12 +60,14 @@ export function DescriptionPage() {
     setStatus(data.status ?? 0);
     setPriority(data.priority ?? 0);
     setCaseNumber(data.caseNumber ?? '');
+    setTitle(data.title ?? '');
+    setSummary(data.summary ?? '');
     if (data.deletedAt) {
       setMessage({ severity: 'warning', message: m.cases_archive_description() });
     } else {
       setMessage((prev) => (prev && prev.severity === 'warning' ? null : prev));
     }
-  }, [data]);
+  }, [data, setTitle, setSummary]);
 
   useEffect(() => {
     window.description.onGenerateTitle(onTitle);
@@ -130,7 +132,7 @@ export function DescriptionPage() {
     }
   };
 
-  const _handleArchive = async () => {
+  const handleArchive = async () => {
     if (!data) return;
     try {
       if (data.deletedAt) {
@@ -170,7 +172,7 @@ export function DescriptionPage() {
             variant="outlined"
             startIcon={data.deletedAt ? <UnarchiveIcon /> : <ArchiveIcon />}
             size="small"
-            onClick={_handleArchive}
+            onClick={handleArchive}
           >
             {data.deletedAt ? m.cases_unarchive() : m.cases_archive()}
           </Button>

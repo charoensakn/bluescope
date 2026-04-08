@@ -25,7 +25,7 @@ export type DevArgs = {
 };
 
 export function register(db: DB) {
-  async function generate(event: Electron.IpcMainInvokeEvent, runId: string, args: DevArgs): Promise<void> {
+  async function generate(event: Electron.IpcMainInvokeEvent, runId: string, args: DevArgs): Promise<string> {
     const { caseId, providerId, system, thai } = args;
 
     if (!system) {
@@ -196,12 +196,14 @@ export function register(db: DB) {
     if (hasText) {
       event.sender.send(channel, runId, 'text-end', llm.text);
     }
+
+    return llm.text;
   }
 
   ipcMain.handle('dev:generate', generate);
 }
 
 export interface IDev {
-  generate: (runId: string, args: DevArgs) => Promise<void>;
+  generate: (runId: string, args: DevArgs) => Promise<string>;
   onGenerate: (fn: StreamFn) => void;
 }

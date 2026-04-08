@@ -13,18 +13,20 @@ import { m } from '../../paraglide/messages';
 
 export type LocationTableProps = {
   rows?: Location[];
+  reasoningMessage?: ReasoningMessage;
   message?: ReasoningMessage;
   isRefreshing?: boolean;
   onRefresh?: () => void;
 };
 
-export function LocationTable({ rows, message, isRefreshing, onRefresh }: LocationTableProps) {
+export function LocationTable({ rows, reasoningMessage, message, isRefreshing, onRefresh }: LocationTableProps) {
   return (
     <TableContainer
       rows={rows}
       icon={<PlaceIcon color="primary" />}
       title={m.locations()}
       subtitle={m.locations_description()}
+      reasoningMessage={reasoningMessage}
       message={message}
       isLoading={isRefreshing}
       controls={

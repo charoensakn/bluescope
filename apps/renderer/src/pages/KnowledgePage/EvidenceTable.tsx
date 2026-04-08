@@ -13,18 +13,20 @@ import { m } from '../../paraglide/messages';
 
 export type EvidenceTableProps = {
   rows?: Evidence[];
+  reasoningMessage?: ReasoningMessage;
   message?: ReasoningMessage;
   isRefreshing?: boolean;
   onRefresh?: () => void;
 };
 
-export function EvidenceTable({ rows, message, isRefreshing, onRefresh }: EvidenceTableProps) {
+export function EvidenceTable({ rows, reasoningMessage, message, isRefreshing, onRefresh }: EvidenceTableProps) {
   return (
     <TableContainer
       rows={rows}
       icon={<ContentPasteSearchIcon color="primary" />}
       title={m.evidence()}
       subtitle={m.evidence_description()}
+      reasoningMessage={reasoningMessage}
       message={message}
       isLoading={isRefreshing}
       controls={

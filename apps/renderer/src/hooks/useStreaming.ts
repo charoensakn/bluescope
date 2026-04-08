@@ -1,7 +1,6 @@
 import type { StreamFn } from '@repo/modules';
 import { useRef, useState } from 'react';
 import type { ReasoningMessage } from '../components';
-import { m } from '../paraglide/messages';
 import { getErrorMessage } from '../utils';
 
 export type StreamingFn = (fn: (runId: string, args: unknown) => Promise<unknown>, args: unknown) => Promise<unknown>;
@@ -34,12 +33,8 @@ export function useStreaming() {
       if (typeof result === 'string') {
         setText(result);
         ret = result;
-      } else if (result) {
-        ret = result;
       } else {
-        setReasoningMessage({ severity: 'warning', message: m.no_data() });
-        setText('');
-        ret = '';
+        ret = result;
       }
     } catch (err) {
       setReasoningMessage(getErrorMessage(err));

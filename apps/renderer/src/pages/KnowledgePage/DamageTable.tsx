@@ -13,18 +13,20 @@ import { m } from '../../paraglide/messages';
 
 export type DamageTableProps = {
   rows?: Damage[];
+  reasoningMessage?: ReasoningMessage;
   message?: ReasoningMessage;
   isRefreshing?: boolean;
   onRefresh?: () => void;
 };
 
-export function DamageTable({ rows, message, isRefreshing, onRefresh }: DamageTableProps) {
+export function DamageTable({ rows, reasoningMessage, message, isRefreshing, onRefresh }: DamageTableProps) {
   return (
     <TableContainer
       rows={rows}
       icon={<ReportIcon color="primary" />}
       title={m.damages()}
       subtitle={m.damages_description()}
+      reasoningMessage={reasoningMessage}
       message={message}
       isLoading={isRefreshing}
       controls={

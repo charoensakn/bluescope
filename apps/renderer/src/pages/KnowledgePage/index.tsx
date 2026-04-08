@@ -12,11 +12,11 @@ import type {
   Organization,
   Person,
 } from '@repo/modules';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import useSWR from 'swr';
-import { AIButton, CaseNotFound, PageHeader } from '../../components';
+import { AIButton, CaseNotFound, PageHeader, type ReasoningMessage } from '../../components';
 import fetcher from '../../fetcher';
-import { useCaseStore, useGenerate, useUIStore } from '../../hooks';
+import { useCaseStore, useStreaming, useUIStore } from '../../hooks';
 import { m } from '../../paraglide/messages';
 import { AssetTable } from './AssetTable';
 import { DamageTable } from './DamageTable';
@@ -30,74 +30,96 @@ import { PersonTable } from './PersonTable';
 
 export function KnowledgePage() {
   const [view, setView] = useState<'table' | 'graph'>('table');
+  const [personMessage, setPersonMessage] = useState<ReasoningMessage>(null);
+  const [organizationMessage, setOrganizationMessage] = useState<ReasoningMessage>(null);
+  const [locationMessage, setLocationMessage] = useState<ReasoningMessage>(null);
+  const [assetMessage, setAssetMessage] = useState<ReasoningMessage>(null);
+  const [damageMessage, setDamageMessage] = useState<ReasoningMessage>(null);
+  const [evidenceMessage, setEvidenceMessage] = useState<ReasoningMessage>(null);
+  const [eventMessage, setEventMessage] = useState<ReasoningMessage>(null);
+  const [linkMessage, setLinkMessage] = useState<ReasoningMessage>(null);
 
   const {
-    message: personMessage,
-    isGenerating: isPersonGenerating,
+    reasoningMessage: personReasoningMessage,
+    isStreaming: isPersonStreaming,
     generate: personGenerate,
-    setIsGenerating: setIsPersonGenerating,
-    setMessage: setPersonMessage,
-  } = useGenerate();
+    setIsStreaming: setIsPersonStreaming,
+    onStreaming: onPersonStreaming,
+  } = useStreaming();
 
   const {
-    message: organizationMessage,
-    isGenerating: isOrganizationGenerating,
+    reasoningMessage: organizationReasoningMessage,
+    isStreaming: isOrganizationStreaming,
     generate: organizationGenerate,
-    setIsGenerating: setIsOrganizationGenerating,
-    setMessage: setOrganizationMessage,
-  } = useGenerate();
+    setIsStreaming: setIsOrganizationStreaming,
+    onStreaming: onOrganizationStreaming,
+  } = useStreaming();
   const {
-    message: locationMessage,
-    isGenerating: isLocationGenerating,
+    reasoningMessage: locationReasoningMessage,
+    isStreaming: isLocationStreaming,
     generate: locationGenerate,
-    setIsGenerating: setIsLocationGenerating,
-    setMessage: setLocationMessage,
-  } = useGenerate();
+    setIsStreaming: setIsLocationStreaming,
+    onStreaming: onLocationStreaming,
+  } = useStreaming();
   const {
-    message: assetMessage,
-    isGenerating: isAssetGenerating,
+    reasoningMessage: assetReasoningMessage,
+    isStreaming: isAssetStreaming,
     generate: assetGenerate,
-    setIsGenerating: setIsAssetGenerating,
-    setMessage: setAssetMessage,
-  } = useGenerate();
+    setIsStreaming: setIsAssetStreaming,
+    onStreaming: onAssetStreaming,
+  } = useStreaming();
   const {
-    message: damageMessage,
-    isGenerating: isDamageGenerating,
+    reasoningMessage: damageReasoningMessage,
+    isStreaming: isDamageStreaming,
     generate: damageGenerate,
-    setIsGenerating: setIsDamageGenerating,
-    setMessage: setDamageMessage,
-  } = useGenerate();
+    setIsStreaming: setIsDamageStreaming,
+    onStreaming: onDamageStreaming,
+  } = useStreaming();
   const {
-    message: evidenceMessage,
-    isGenerating: isEvidenceGenerating,
+    reasoningMessage: evidenceReasoningMessage,
+    isStreaming: isEvidenceStreaming,
     generate: evidenceGenerate,
-    setIsGenerating: setIsEvidenceGenerating,
-    setMessage: setEvidenceMessage,
-  } = useGenerate();
+    setIsStreaming: setIsEvidenceStreaming,
+    onStreaming: onEvidenceStreaming,
+  } = useStreaming();
   const {
-    message: eventMessage,
-    isGenerating: isEventGenerating,
+    reasoningMessage: eventReasoningMessage,
+    isStreaming: isEventStreaming,
     generate: eventGenerate,
-    setIsGenerating: setIsEventGenerating,
-    setMessage: setEventMessage,
-  } = useGenerate();
+    setIsStreaming: setIsEventStreaming,
+    onStreaming: onEventStreaming,
+  } = useStreaming();
   const {
-    message: linkMessage,
-    isGenerating: isLinkGenerating,
+    reasoningMessage: linkReasoningMessage,
+    isStreaming: isLinkStreaming,
     generate: linkGenerate,
-    setIsGenerating: setIsLinkGenerating,
-    setMessage: setLinkMessage,
-  } = useGenerate();
+    setIsStreaming: setIsLinkStreaming,
+    onStreaming: onLinkStreaming,
+  } = useStreaming();
 
-  const isGenerating =
-    isPersonGenerating ||
-    isOrganizationGenerating ||
-    isLocationGenerating ||
-    isAssetGenerating ||
-    isDamageGenerating ||
-    isEvidenceGenerating ||
-    isEventGenerating ||
-    isLinkGenerating;
+  useEffect(() => {
+    window.structure.onExtract(onPersonStreaming);
+    window.structure.onExtract(onOrganizationStreaming);
+    window.structure.onExtract(onLocationStreaming);
+    window.structure.onExtract(onAssetStreaming);
+    window.structure.onExtract(onDamageStreaming);
+    window.structure.onExtract(onEvidenceStreaming);
+    window.structure.onExtract(onEventStreaming);
+    window.structure.onAnalyze(onLinkStreaming);
+    return () => {
+      window.browser.removeAllListeners();
+    };
+  });
+
+  const isStreaming =
+    isPersonStreaming ||
+    isOrganizationStreaming ||
+    isLocationStreaming ||
+    isAssetStreaming ||
+    isDamageStreaming ||
+    isEvidenceStreaming ||
+    isEventStreaming ||
+    isLinkStreaming;
 
   const promptLocale = useUIStore((state) => state.promptLocale);
 
@@ -128,6 +150,7 @@ export function KnowledgePage() {
 
   const handleRefreshPersons = async () => {
     if (!focusCaseId) return;
+    setPersonMessage(null);
     const results = await personGenerate(window.structure.extract, {
       caseId: focusCaseId,
       extract: 'person',
@@ -149,6 +172,7 @@ export function KnowledgePage() {
 
   const handleRefreshOrganizations = async () => {
     if (!focusCaseId) return;
+    setOrganizationMessage(null);
     const results = await organizationGenerate(window.structure.extract, {
       caseId: focusCaseId,
       extract: 'organization',
@@ -170,6 +194,7 @@ export function KnowledgePage() {
 
   const handleRefreshLocations = async () => {
     if (!focusCaseId) return;
+    setLocationMessage(null);
     const results = await locationGenerate(window.structure.extract, {
       caseId: focusCaseId,
       extract: 'location',
@@ -191,6 +216,7 @@ export function KnowledgePage() {
 
   const handleRefreshAssets = async () => {
     if (!focusCaseId) return;
+    setAssetMessage(null);
     const results = await assetGenerate(window.structure.extract, {
       caseId: focusCaseId,
       extract: 'asset',
@@ -212,6 +238,7 @@ export function KnowledgePage() {
 
   const handleRefreshDamages = async () => {
     if (!focusCaseId) return;
+    setDamageMessage(null);
     const results = await damageGenerate(window.structure.extract, {
       caseId: focusCaseId,
       extract: 'damage',
@@ -233,6 +260,7 @@ export function KnowledgePage() {
 
   const handleRefreshEvidences = async () => {
     if (!focusCaseId) return;
+    setEvidenceMessage(null);
     const results = await evidenceGenerate(window.structure.extract, {
       caseId: focusCaseId,
       extract: 'evidence',
@@ -254,6 +282,7 @@ export function KnowledgePage() {
 
   const handleRefreshEvents = async () => {
     if (!focusCaseId) return;
+    setEventMessage(null);
     const results = await eventGenerate(window.structure.extract, {
       caseId: focusCaseId,
       extract: 'event',
@@ -275,6 +304,7 @@ export function KnowledgePage() {
 
   const handleRefreshLinks = async () => {
     if (!focusCaseId) return;
+    setLinkMessage(null);
     const results = await linkGenerate(window.structure.analyze, {
       caseId: focusCaseId,
       thai: promptLocale === 'th',
@@ -294,14 +324,14 @@ export function KnowledgePage() {
   };
 
   const handleAllRefresh = async () => {
-    setIsPersonGenerating(true);
-    setIsOrganizationGenerating(true);
-    setIsLocationGenerating(true);
-    setIsAssetGenerating(true);
-    setIsDamageGenerating(true);
-    setIsEvidenceGenerating(true);
-    setIsEventGenerating(true);
-    setIsLinkGenerating(true);
+    setIsPersonStreaming(true);
+    setIsOrganizationStreaming(true);
+    setIsLocationStreaming(true);
+    setIsAssetStreaming(true);
+    setIsDamageStreaming(true);
+    setIsEvidenceStreaming(true);
+    setIsEventStreaming(true);
+    setIsLinkStreaming(true);
 
     await handleRefreshPersons();
     await handleRefreshOrganizations();
@@ -331,58 +361,66 @@ export function KnowledgePage() {
             <AccountTreeIcon fontSize="small" />
           </ToggleButton>
         </ToggleButtonGroup>
-        <AIButton isLoading={isGenerating} onClick={handleAllRefresh}>
+        <AIButton isLoading={isStreaming} onClick={handleAllRefresh}>
           {m.refresh()}
         </AIButton>
       </PageHeader>
       {view === 'table' ? (
         <>
           <PersonTable
+            reasoningMessage={personReasoningMessage}
             message={personMessage}
             rows={persons}
-            isRefreshing={isPersonGenerating}
+            isRefreshing={isPersonStreaming}
             onRefresh={handleRefreshPersons}
           />
           <OrganizationTable
+            reasoningMessage={organizationReasoningMessage}
             message={organizationMessage}
             rows={organizations}
-            isRefreshing={isOrganizationGenerating}
+            isRefreshing={isOrganizationStreaming}
             onRefresh={handleRefreshOrganizations}
           />
           <LocationTable
+            reasoningMessage={locationReasoningMessage}
             message={locationMessage}
             rows={locations}
-            isRefreshing={isLocationGenerating}
+            isRefreshing={isLocationStreaming}
             onRefresh={handleRefreshLocations}
           />
           <AssetTable
+            reasoningMessage={assetReasoningMessage}
             message={assetMessage}
             rows={assets}
-            isRefreshing={isAssetGenerating}
+            isRefreshing={isAssetStreaming}
             onRefresh={handleRefreshAssets}
           />
           <DamageTable
+            reasoningMessage={damageReasoningMessage}
             message={damageMessage}
             rows={damages}
-            isRefreshing={isDamageGenerating}
+            isRefreshing={isDamageStreaming}
             onRefresh={handleRefreshDamages}
           />
           <EvidenceTable
+            reasoningMessage={evidenceReasoningMessage}
             message={evidenceMessage}
             rows={evidences}
-            isRefreshing={isEvidenceGenerating}
+            isRefreshing={isEvidenceStreaming}
             onRefresh={handleRefreshEvidences}
           />
           <EventTable
+            reasoningMessage={eventReasoningMessage}
             message={eventMessage}
             rows={events}
-            isRefreshing={isEventGenerating}
+            isRefreshing={isEventStreaming}
             onRefresh={handleRefreshEvents}
           />
           <LinkTable
+            reasoningMessage={linkReasoningMessage}
             message={linkMessage}
             rows={links}
-            isRefreshing={isLinkGenerating}
+            isRefreshing={isLinkStreaming}
             onRefresh={handleRefreshLinks}
           />
         </>

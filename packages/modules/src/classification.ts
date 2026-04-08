@@ -2,7 +2,7 @@ import path from 'node:path';
 import { ClassificationAgent, loadSkills, type Skill } from '@repo/agents';
 import { CaseRepo, type CaseType, CaseTypeRepo, type DB } from '@repo/repos';
 import { app, ipcMain } from 'electron';
-import { runAgent } from './helper';
+import { runAgentStream, type StreamFn } from './helper';
 
 const skillsPath = path.join(app.getAppPath(), 'skills');
 
@@ -77,16 +77,18 @@ export type ClassificationArgs = {
 };
 
 export function register(db: DB) {
-  async function categorize(event: Electron.IpcMainInvokeEvent, args: ClassificationArgs) {
+  async function categorize(event: Electron.IpcMainInvokeEvent, runId: string, args: ClassificationArgs) {
     if (!args.caseId) {
       throw new Error('caseId is required for suggestion');
     }
     const caseRepo = new CaseRepo(db);
     const { description } = await caseRepo.getById(args.caseId);
 
-    const results = await runAgent(
+    const results = await runAgentStream(
       event,
+      runId,
       { description, thai: args.thai, skillsPath },
+      'classification:categorize',
       (p) => p.classificationAgent,
       (...a) => new ClassificationAgent(...a),
       db,
@@ -142,7 +144,8 @@ export function register(db: DB) {
 }
 
 export interface IClassification {
-  categorize: (args: ClassificationArgs) => Promise<unknown>;
+  categorize: (runId: string, args: ClassificationArgs) => Promise<unknown>;
+  onCategorize: (fn: StreamFn) => void;
   getAll: (caseId: string) => Promise<CaseType[]>;
   deleteAll: (caseId: string) => Promise<void>;
   getSkills: () => Promise<Skill[]>;

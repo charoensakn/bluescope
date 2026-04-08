@@ -13,18 +13,20 @@ import { m } from '../../paraglide/messages';
 
 export type PersonTableProps = {
   rows?: Person[];
+  reasoningMessage?: ReasoningMessage;
   message?: ReasoningMessage;
   isRefreshing?: boolean;
   onRefresh?: () => void;
 };
 
-export function PersonTable({ rows, message, isRefreshing, onRefresh }: PersonTableProps) {
+export function PersonTable({ rows, reasoningMessage, message, isRefreshing, onRefresh }: PersonTableProps) {
   return (
     <TableContainer
       rows={rows}
       icon={<PersonIcon color="primary" />}
       title={m.persons()}
       subtitle={m.persons_description()}
+      reasoningMessage={reasoningMessage}
       message={message}
       isLoading={isRefreshing}
       controls={

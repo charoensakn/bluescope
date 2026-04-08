@@ -13,18 +13,20 @@ import { m } from '../../paraglide/messages';
 
 export type EventTableProps = {
   rows?: Event[];
+  reasoningMessage?: ReasoningMessage;
   message?: ReasoningMessage;
   isRefreshing?: boolean;
   onRefresh?: () => void;
 };
 
-export function EventTable({ rows, message, isRefreshing, onRefresh }: EventTableProps) {
+export function EventTable({ rows, reasoningMessage, message, isRefreshing, onRefresh }: EventTableProps) {
   return (
     <TableContainer
       rows={rows}
       icon={<AccessTimeIcon color="primary" />}
       title={m.events()}
       subtitle={m.events_description()}
+      reasoningMessage={reasoningMessage}
       message={message}
       isLoading={isRefreshing}
       controls={

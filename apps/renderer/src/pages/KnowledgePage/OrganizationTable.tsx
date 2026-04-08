@@ -13,18 +13,26 @@ import { m } from '../../paraglide/messages';
 
 export type OrganizationTableProps = {
   rows?: Organization[];
+  reasoningMessage?: ReasoningMessage;
   message?: ReasoningMessage;
   isRefreshing?: boolean;
   onRefresh?: () => void;
 };
 
-export function OrganizationTable({ rows, message, isRefreshing, onRefresh }: OrganizationTableProps) {
+export function OrganizationTable({
+  rows,
+  reasoningMessage,
+  message,
+  isRefreshing,
+  onRefresh,
+}: OrganizationTableProps) {
   return (
     <TableContainer
       rows={rows}
       icon={<LocationCityIcon color="primary" />}
       title={m.organizations()}
       subtitle={m.organizations_description()}
+      reasoningMessage={reasoningMessage}
       message={message}
       isLoading={isRefreshing}
       controls={

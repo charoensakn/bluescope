@@ -35,6 +35,7 @@ export type OutputStream = {
 
 export class LLM {
   isRun = false;
+  done: Promise<void> | null = null;
   reasoningText?: string;
   text?: string;
   output?: unknown;
@@ -307,6 +308,7 @@ export class LLM {
     });
 
     try {
+      this.done = new Promise<void>((resolve) => resolve());
       this.reasoningText = result.reasoningText;
       this.text = result.text;
       this.output = result.output;
@@ -345,6 +347,7 @@ export class LLM {
       streamError = reject;
     });
     const done = streamDonePromise;
+    this.done = done;
 
     // Consume fullStream in the background, collecting chunks
     (async () => {
@@ -361,7 +364,6 @@ export class LLM {
         this.inputUsage = usage?.inputTokens;
         this.outputUsage = usage?.outputTokens;
         this.totalUsage = usage?.totalTokens;
-
         streamDone?.();
       } catch (err) {
         streamError?.(err);

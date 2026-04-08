@@ -13,18 +13,20 @@ import { m } from '../../paraglide/messages';
 
 export type LinkTableProps = {
   rows?: CaseLink[];
+  reasoningMessage?: ReasoningMessage;
   message?: ReasoningMessage;
   isRefreshing?: boolean;
   onRefresh?: () => void;
 };
 
-export function LinkTable({ rows, message, isRefreshing, onRefresh }: LinkTableProps) {
+export function LinkTable({ rows, reasoningMessage, message, isRefreshing, onRefresh }: LinkTableProps) {
   return (
     <TableContainer
       rows={rows}
       icon={<ShareIcon color="primary" />}
       title={m.links()}
       subtitle={m.links_description()}
+      reasoningMessage={reasoningMessage}
       message={message}
       isLoading={isRefreshing}
       controls={

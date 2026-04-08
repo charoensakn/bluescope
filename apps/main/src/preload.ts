@@ -63,16 +63,18 @@ contextBridge.exposeInMainWorld('provider', {
 
 contextBridge.exposeInMainWorld('refinement', {
   refineDescription: (runId: string, args: object) => ipcRenderer.invoke('refinement:refineDescription', runId, args),
+  onRefineDescription: (fn: Fn) => ipcRenderer.on('refinement:refineDescription', fn),
   refineEntity: (runId: string, args: object) => ipcRenderer.invoke('refinement:refineEntity', runId, args),
+  onRefineEntity: (fn: Fn) => ipcRenderer.on('refinement:refineEntity', fn),
   getAllDescriptionLogs: (caseId: string) => ipcRenderer.invoke('refinement:getAllDescriptionLogs', caseId),
   getAllEntityLogs: (caseId: string) => ipcRenderer.invoke('refinement:getAllEntityLogs', caseId),
-  onRefineDescription: (fn: Fn) => ipcRenderer.on('refinement:refineDescription', fn),
-  onRefineEntity: (fn: Fn) => ipcRenderer.on('refinement:refineEntity', fn),
 });
 
 contextBridge.exposeInMainWorld('structure', {
   extract: (runId: string, args: object) => ipcRenderer.invoke('structure:extract', runId, args),
+  onExtract: (fn: Fn) => ipcRenderer.on('structure:extract', fn),
   analyze: (runId: string, args: object) => ipcRenderer.invoke('structure:analyze', runId, args),
+  onAnalyze: (fn: Fn) => ipcRenderer.on('structure:analyze', fn),
   getAllPersons: (caseId: string) => ipcRenderer.invoke('structure:getAllPersons', caseId),
   getAllOrganizations: (caseId: string) => ipcRenderer.invoke('structure:getAllOrganizations', caseId),
   getAllLocations: (caseId: string) => ipcRenderer.invoke('structure:getAllLocations', caseId),
@@ -98,6 +100,7 @@ contextBridge.exposeInMainWorld('advisor', {
 
 contextBridge.exposeInMainWorld('classification', {
   categorize: (runId: string, args: object) => ipcRenderer.invoke('classification:categorize', runId, args),
+  onCategorize: (fn: Fn) => ipcRenderer.on('classification:categorize', fn),
   getAll: (caseId: string) => ipcRenderer.invoke('classification:getAll', caseId),
   deleteAll: (caseId: string) => ipcRenderer.invoke('classification:deleteAll', caseId),
   getSkills: () => ipcRenderer.invoke('classification:getSkills'),
@@ -107,8 +110,8 @@ contextBridge.exposeInMainWorld('classification', {
 
 contextBridge.exposeInMainWorld('description', {
   generateTitle: (runId: string, args: object) => ipcRenderer.invoke('description:generateTitle', runId, args),
-  summarize: (runId: string, args: object) => ipcRenderer.invoke('description:summarize', runId, args),
   onGenerateTitle: (fn: Fn) => ipcRenderer.on('description:generateTitle', fn),
+  summarize: (runId: string, args: object) => ipcRenderer.invoke('description:summarize', runId, args),
   onSummarize: (fn: Fn) => ipcRenderer.on('description:summarize', fn),
 });
 
