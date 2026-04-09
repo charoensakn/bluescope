@@ -1,10 +1,20 @@
 # BlueScope
 
+> 🇹🇭 [ภาษาไทย](README.th.md)
+
 A lightweight, open-source intelligence toolkit built for investigative work. BlueScope transforms raw case data into clear, dependable AI-driven insights, streamlining investigative analysis and supporting precise, evidence-based decision-making.
 
 ## Overview
 
-BlueScope is a local-first, cross-platform Electron desktop application that assists investigators in processing criminal case narratives. Users input raw case text, and a pipeline of specialized LLM agents refines the description, extracts structured entities, builds relationship graphs, classifies the case against a Thai criminal law taxonomy, and generates domain-specific advisory reports — all stored locally.
+BlueScope is a **local-first, cross-platform desktop application** built on Electron, designed to assist investigators in processing criminal case narratives — particularly tailored for **Thai law enforcement**. Users input raw case text, and a pipeline of specialized LLM agents:
+
+1. Refines the narrative for clarity
+2. Extracts structured entities (persons, organizations, locations, assets, evidence, and events)
+3. Infers relationships between entities and builds a visual network graph
+4. Classifies the case against a 58-skill Thai criminal law taxonomy
+5. Generates domain-specific investigative advisory reports
+
+All data is stored locally on-device; nothing leaves the machine except API calls to the chosen LLM provider.
 
 ## Tech Stack
 
@@ -24,48 +34,98 @@ BlueScope is a local-first, cross-platform Electron desktop application that ass
 
 ### Supported LLM Providers
 
-OpenAI, Anthropic, Google Gemini, Azure OpenAI, Groq, Mistral, Cohere, DeepSeek, Cerebras, xAI (Grok), Perplexity, TogetherAI, Fireworks, DeepInfra, and any OpenAI-compatible endpoint. API keys are encrypted using Electron's native safe storage.
+OpenAI, Anthropic, Google Gemini, Azure OpenAI, Groq, Mistral, Cohere, DeepSeek, Cerebras, xAI (Grok), Perplexity, TogetherAI, Fireworks, DeepInfra, and any OpenAI-compatible endpoint. API keys are encrypted at rest using Electron's native `safeStorage`.
 
 ## Monorepo Structure
 
+This repository is a **Turborepo monorepo** with two apps and four packages:
+
 ```
-apps/
-  main/       — Electron main process (IPC handlers, SQLite, migrations, window management)
-  renderer/   — React SPA (UI, routing, AI streaming display)
-packages/
-  agents/     — AI agent classes built on the Vercel AI SDK
-  modules/    — Electron IPC bridge modules
-  repos/      — Drizzle ORM database repositories
-  skills/     — Thai criminal law skill taxonomy (58 Markdown skill files)
+bluescope/
+├── apps/
+│   ├── main/       — Electron main process (IPC handlers, SQLite, migrations, window management)
+│   └── renderer/   — React SPA (UI, routing, AI streaming display)
+└── packages/
+    ├── agents/     — AI agent classes built on the Vercel AI SDK
+    ├── modules/    — Electron IPC bridge modules
+    ├── repos/      — Drizzle ORM database repositories
+    └── skills/     — Thai criminal law skill taxonomy (58 Markdown skill files)
 ```
 
 ### Apps
 
-**`apps/main`** — Electron main process. Initialises the SQLite database, runs Drizzle migrations, exposes all IPC module handlers, manages a borderless window with custom titlebar controls, and uses `safeStorage` for encrypted API key persistence.
+**`apps/main`** — Electron main process. Initialises the SQLite database, runs Drizzle migrations on startup, exposes all IPC module handlers, manages a borderless window with custom titlebar controls, and uses `safeStorage` for encrypted API key persistence.
 
-**`apps/renderer`** — Vite-powered React frontend loaded inside the Electron window. Communicates with the main process exclusively via IPC bridges exposed by `preload.ts`.
+**`apps/renderer`** — Vite-powered React frontend loaded inside the Electron window. Communicates with the main process **exclusively via IPC bridges** exposed by `preload.ts`. Never calls the database or the filesystem directly.
 
 ### Packages
 
-**`@repo/agents`** — Structured LLM agents. Each agent extends `BaseAgent` with bilingual (EN/TH) system/user prompts.
+#### `@repo/agents` — AI Agent Pipeline
 
-| Agent | Purpose |
+All agents extend an abstract `BaseAgent` class, which wraps the Vercel AI SDK. Each agent defines bilingual (EN/TH) `systemPrompt()` and `userPrompt()` methods, and optionally a structured Zod output schema. Agents support both streaming (`runStream`) and batch (`run`) execution modes.
+
+| Step | Agent | Purpose |
+|---|---|---|
+| 1 | `TitleAgent` | Generates a concise case title |
+| 2 | `SummaryAgent` | Produces a one-paragraph case summary |
+| 3 | `DescriptionRefinementAgent` | Rewrites the case narrative for clarity |
+| 4 | `EntityRefinementAgent` | Refines structured entity lists |
+| 5 | `StructureExtractionAgent` | Extracts persons, organizations, locations, assets, damages, evidence, and events as structured JSON |
+| 6 | `LinkAnalysisAgent` | Infers relationships between extracted entities |
+| 7 | `ClassificationAgent` | Multi-label classification against the 58-skill taxonomy |
+| 8 | `AdvisoryAgent` | Generates skill-specific investigative recommendations |
+| 9 | `SynthesisAgent` | Aggregates multiple advisory outputs into one unified report |
+
+#### `@repo/modules` — IPC Bridge Modules
+
+These modules act as the bridge between the renderer (UI) and the main process (Electron). Each module registers IPC handlers that invoke database repositories or run AI agents, streaming results back to the frontend.
+
+Modules: `caseModule`, `configModule`, `providerModule`, `llmModule`, `descriptionModule`, `refinementModule`, `structureModule`, `classificationModule`, `advisorModule`, `dashboardModule`, `presetModule`, `searchModule`, `logModule`, `browserModule`, `devModule`.
+
+#### `@repo/repos` — Database Repositories
+
+Drizzle ORM repositories for every database table. All schemas are defined in `schema.ts`.
+
+| Repository | Table |
 |---|---|
-| `TitleAgent` | Generates a concise case title |
-| `SummaryAgent` | Produces a one-paragraph case summary |
-| `DescriptionRefinementAgent` | Rewrites the case narrative for clarity |
-| `EntityRefinementAgent` | Refines structured entity lists |
-| `StructureExtractionAgent` | Extracts persons, organizations, locations, assets, damages, evidence, and events |
-| `LinkAnalysisAgent` | Infers relationships between extracted entities |
-| `ClassificationAgent` | Multi-label classification against the skill taxonomy |
-| `AdvisoryAgent` | Generates skill-specific investigative recommendations |
-| `SynthesisAgent` | Aggregates multiple advisory outputs into one report |
+| `cases` | Master case records |
+| `case_persons` | Extracted person entities |
+| `case_organizations` | Extracted organization entities |
+| `case_locations` | Extracted location entities |
+| `case_assets` | Extracted asset entities |
+| `case_damages` | Extracted damage records |
+| `case_evidence` | Extracted evidence items |
+| `case_events` | Extracted event records |
+| `case_links` | Relationship graph edges between entities |
+| `case_types` | Classification results (matched skill IDs) |
+| `case_suggestions` | Advisory outputs per skill |
+| `case_description_logs` | History of description refinements |
+| `case_entity_logs` | History of entity refinements |
+| `presets` | Saved LLM provider presets |
+| `usage_logs` | LLM token usage tracking |
 
-**`@repo/modules`** — IPC modules: `caseModule`, `configModule`, `providerModule`, `llmModule`, `descriptionModule`, `refinementModule`, `structureModule`, `classificationModule`, `advisorModule`, `dashboardModule`, `presetModule`, `searchModule`, `logModule`, `browserModule`, `devModule`.
+#### `@repo/skills` — Thai Criminal Law Taxonomy
 
-**`@repo/repos`** — Drizzle ORM repositories for every database table: `cases`, `case_persons`, `case_organizations`, `case_locations`, `case_assets`, `case_damages`, `case_evidence`, `case_events`, `case_links`, `case_types`, `case_suggestions`, `case_description_logs`, `case_entity_logs`, `presets`, `usage_logs`.
+58 Markdown skill files, each providing classification metadata and a domain-specific system prompt for the `AdvisoryAgent`. Skills are organized into 16 categories:
 
-**`@repo/skills`** — 58 Markdown skill files covering Thai criminal law categories (homicide, arson, sexual offences, property crimes, narcotics, cybercrime, financial crime, wildlife/environmental offences, and more). Each skill provides classification metadata and a system prompt for the `AdvisoryAgent`.
+| # | Category | Skills |
+|---|---|---|
+| 1 | Homicide & Violent Crimes | Homicide, Premeditated murder, Death from boxing, Justifiable homicide, Abortion, Insanity cases |
+| 2 | Arson | Arson (2 variants) |
+| 3 | Sexual Offences | Rape (2 variants), Online sexual exploitation & human trafficking |
+| 4 | Property Crimes | Extortion, Fraud, Embezzlement, Theft (3 variants), Religious artifact theft, Robbery, Receiving stolen property, Trespassing, Unlawful detention, Child kidnapping for ransom |
+| 5 | Forgery | Counterfeit currency, Forged official documents |
+| 6 | Weapons | Firearms offences (2 variants) |
+| 7 | Immigration | Alien deportation, Illegal entry |
+| 8 | Wildlife / Forestry / Antiquities | Killing wild elephants, Wildlife carcass possession, Hunting protected wildlife, National forest offences, Antiquities & museums |
+| 9 | Economic & Financial Crimes | Bad checks, Credit card fraud (3 variants), Customs offences, Bribery of official |
+| 10 | Occupational / Public Health | Illegal medical practice, Impersonating a monk, Impersonating police |
+| 11 | Animal Slaughter Control | Animal slaughter control |
+| 12 | Gambling | Gambling offences, Online gambling & transnational crime |
+| 13 | Narcotics | Narcotics offences, Drug distribution |
+| 14 | Illegal Solicitation | Illegal solicitation |
+| 15 | Traffic | Reckless driving, Traffic accident |
+| 16 | Cybercrime | Online fake news & computer crime, Online product fraud, Online gambling & transnational crime, Online sexual exploitation, Online financial fraud |
 
 ### Renderer Pages
 
@@ -80,12 +140,56 @@ packages/
 | Suggestion | `/suggestion` | Per-skill advisory generation and AI synthesis report |
 | Settings | `/setting` | Theme, language, reasoning toggle, LLM provider management |
 
+## Data Flow
+
+The following end-to-end pipeline shows how a raw case narrative becomes structured intelligence:
+
+```
+User inputs raw case text
+        │
+        ▼
+DescriptionRefinementAgent ──► refined narrative
+        │
+        ▼
+EntityRefinementAgent ──► refined entity text
+        │
+        ▼
+StructureExtractionAgent ──► structured JSON
+        │                     (persons, orgs, locations,
+        │                      assets, damages, evidence, events)
+        ▼
+LinkAnalysisAgent ──► relationship graph edges
+        │
+        ▼
+ClassificationAgent ──► matched skill IDs (from 58-skill taxonomy)
+        │
+        ▼
+AdvisoryAgent (per matched skill) ──► investigative recommendations
+        │
+        ▼
+SynthesisAgent ──► unified advisory report
+        │
+        ▼
+All results saved to local SQLite database
+```
+
+In parallel, `TitleAgent` and `SummaryAgent` run at the description stage to produce the case title and summary.
+
+## Key Design Decisions
+
+- **Local-first**: All case data is stored on-device in SQLite. No cloud sync. API keys are encrypted via Electron's `safeStorage`.
+- **Multi-LLM**: Supports 15+ providers via the Vercel AI SDK abstraction, making it easy to swap models without code changes.
+- **Bilingual**: All agents support both English and Thai prompts; the UI supports both languages via Paraglide.js i18n.
+- **Streaming**: AI responses stream in real-time to the UI via Electron IPC, using the Vercel AI SDK's streaming API.
+- **Domain-specific**: The 58 Thai criminal law skills make the tool deeply tailored to Thai law enforcement use cases, with classification and advisory prompts written for each specific offence category.
+- **Modular monorepo**: Turborepo keeps `agents`, `modules`, `repos`, and `skills` as independently buildable and testable packages, while sharing types across the workspace.
+
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js 24+
-- npm
+- npm 11+
 
 ### Install dependencies
 
