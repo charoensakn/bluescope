@@ -12,6 +12,7 @@
     "clean": "rimraf ./dist",
     "lint": "biome lint  --write",
     "format": "biome format --write",
-    "check": "biome check --write"
+    "check": "biome check --write",
+    "test": "vitest"
   }
 }
