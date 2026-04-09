@@ -23,10 +23,6 @@ vi.mock('node:fs', async (importOriginal) => {
 const { availableProviders } = await import('./provider');
 
 describe('provider module', () => {
-  beforeEach(() => {
-    vi.resetModules();
-  });
-
   describe('availableProviders', () => {
     it('returns empty array when no providers configured', () => {
       const providers = availableProviders(() => true);
