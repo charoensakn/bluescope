@@ -18,19 +18,10 @@ import {
   structureModule,
 } from '@repo/modules';
 import { connect, migrate } from '@repo/repos';
-import {
-  app,
-  BaseWindow,
-  BrowserWindow,
-  ImageView,
-  ipcMain,
-  Menu,
-  Notification,
-  nativeImage,
-  nativeTheme,
-  shell,
-} from 'electron';
+import { app, BaseWindow, BrowserWindow, ImageView, ipcMain, Menu, nativeImage, nativeTheme, shell } from 'electron';
 import started from 'electron-squirrel-startup';
+import { notify } from './electron_utils';
+import { getLatestVersion } from './utils';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -99,22 +90,19 @@ const createWindow = () => {
       shell.openExternal(url);
     });
   } catch (err) {
-    if (Notification.isSupported()) {
-      const n = new Notification({
-        title: 'BlueScope',
-        body: `Failed to initialize the application: ${(err as Error).message}`,
-      });
-      n.on('click', () => {
+    notify({
+      message: `Failed to initialize the application: ${(err as Error).message}`,
+      onClick: () => {
         app.quit();
-      });
-      n.on('close', () => {
+      },
+      onClose: () => {
         app.quit();
-      });
-      n.show();
-    } else {
-      console.error('Failed to initialize the application:', err);
-      app.quit();
-    }
+      },
+      onError: () => {
+        console.error('Failed to initialize the application:', err);
+        app.quit();
+      },
+    });
   }
 
   nativeTheme.themeSource = configModule.readThemeState();
@@ -166,6 +154,17 @@ const createWindow = () => {
   mainWindow.once('ready-to-show', () => {
     splashWin.close();
     mainWindow.show();
+
+    getLatestVersion().then((latest) => {
+      if (latest && latest.tagName.localeCompare(`v${app.getVersion()}`) > 0) {
+        notify({
+          message: `A new version ${latest.tagName} is available! Click to download.`,
+          onClick: () => {
+            shell.openExternal(latest.browserDownloadUrl);
+          },
+        });
+      }
+    });
   });
 
   const rendererPath = path.join(app.getAppPath(), 'renderer', `index.html`);
@@ -176,22 +175,19 @@ const createWindow = () => {
     // Open the DevTools.
     mainWindow.webContents.openDevTools();
   } else {
-    if (Notification.isSupported()) {
-      const n = new Notification({
-        title: 'BlueScope',
-        body: `No renderer found, ${process.env.VITE_APP_URL || 'please set VITE_APP_URL in .env'}`,
-      });
-      n.on('click', () => {
+    notify({
+      message: `No renderer found, ${process.env.VITE_APP_URL || 'please set VITE_APP_URL in .env'}`,
+      onClick: () => {
         app.quit();
-      });
-      n.on('close', () => {
+      },
+      onClose: () => {
         app.quit();
-      });
-      n.show();
-    } else {
-      console.error('No renderer found, unable to start the application');
-      app.quit();
-    }
+      },
+      onError: () => {
+        console.error('No renderer found, unable to start the application');
+        app.quit();
+      },
+    });
   }
 
   mainWindow.on('close', () => {

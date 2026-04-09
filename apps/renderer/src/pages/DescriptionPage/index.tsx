@@ -62,11 +62,6 @@ export function DescriptionPage() {
     setCaseNumber(data.caseNumber ?? '');
     setTitle(data.title ?? '');
     setSummary(data.summary ?? '');
-    if (data.deletedAt) {
-      setMessage({ severity: 'warning', message: m.cases_archive_description() });
-    } else {
-      setMessage((prev) => (prev && prev.severity === 'warning' ? null : prev));
-    }
   }, [data, setTitle, setSummary]);
 
   useEffect(() => {
@@ -112,7 +107,7 @@ export function DescriptionPage() {
           summary,
           description: content,
         });
-        if (!data.deletedAt) setMessage(getSavedMessage());
+        setMessage(getSavedMessage());
         setIsSave(true);
         mutate();
       }
@@ -159,6 +154,7 @@ export function DescriptionPage() {
         <SaveButton isSave={isSave} onClick={handleSave} />
       </PageHeader>
 
+      {data.deletedAt && <Reasoning message={{ severity: 'warning', message: m.cases_archive_description() }} />}
       <Reasoning message={message} />
 
       <Paper elevation={1} sx={{ p: 2, borderRadius: 4 }}>
