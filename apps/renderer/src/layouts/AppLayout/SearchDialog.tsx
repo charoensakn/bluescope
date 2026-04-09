@@ -69,7 +69,7 @@ export function SearchDialog({ open, onCancel }: SearchDialogProps) {
           .filter((c) =>
             ids.length > 0
               ? ids.includes(c.id)
-              : c.title.toLocaleLowerCase().indexOf(s) !== -1 || c.description.toLocaleLowerCase().indexOf(s) !== -1,
+              : c.title.toLocaleLowerCase().includes(s) || c.description.toLocaleLowerCase().includes(s),
           )
           .slice(0, 10);
         setCases(results);

@@ -58,6 +58,8 @@ export function AppLayout() {
     }
   }, [focusCaseId, pathname]);
 
+  const version = window.appversions()?.bs_app;
+
   return (
     <>
       <Stack direction="row" sx={{ height: '100%' }}>
@@ -95,6 +97,15 @@ export function AppLayout() {
                 onCloseClick={() => window.browser.close()}
               />
               <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                {version && (
+                  <Typography
+                    variant="caption"
+                    color={'textDisabled'}
+                    sx={{ fontSize: '0.625rem', lineHeight: '0.625rem' }}
+                  >
+                    {`v${version}`}
+                  </Typography>
+                )}
                 {focusCaseId && (
                   <Typography variant="caption" color="primary" sx={{ fontSize: '0.625rem', lineHeight: '0.625rem' }}>
                     {getShortId(focusCaseId)}

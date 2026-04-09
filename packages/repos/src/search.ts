@@ -10,13 +10,12 @@ const ftsTable = sqliteTable('cases_fts', {
   description: text(),
 });
 
-function segmentThaiForFTS(text: string) {
+function segmentThaiForFTS(text: string): string[] {
   const seg = new Intl.Segmenter('th', { granularity: 'word' });
   return [...seg.segment(text)]
-    .map((s) => s.segment)
-    .filter(Boolean)
-    .join(' ')
-    .toLocaleLowerCase();
+    .filter((s) => s.isWordLike)
+    .map((s) => s.segment.toLocaleLowerCase())
+    .filter((s) => s.length > 1);
 }
 
 export class SearchRepo extends BaseRepo {
@@ -34,8 +33,8 @@ export class SearchRepo extends BaseRepo {
     const cases = await caseRepo.getAll();
     for (const c of cases) {
       const id = c.id;
-      const title = segmentThaiForFTS(c.title) || '';
-      const description = segmentThaiForFTS(c.description) || '';
+      const title = segmentThaiForFTS(c.title).join(' ');
+      const description = segmentThaiForFTS(c.description).join(' ');
       await this.memdb.run(
         sql`INSERT INTO cases_fts (id, title, description) VALUES (${id}, ${title}, ${description})`,
       );
@@ -47,8 +46,11 @@ export class SearchRepo extends BaseRepo {
       return [];
     }
     try {
-      const segmentedQuery = segmentThaiForFTS(query.replace(/['";]+/g, ' '));
-      const results = await this.memdb.select().from(ftsTable).where(sql`cases_fts MATCH ${segmentedQuery}`).limit(10);
+      const tokens = segmentThaiForFTS(query.replace(/["*^()]/g, ' '));
+      if (tokens.length === 0) return [];
+      // Quote each token for exact term matching; join with OR for better recall
+      const ftsQuery = tokens.map((t) => `"${t}"`).join(' OR ');
+      const results = await this.memdb.select().from(ftsTable).where(sql`cases_fts MATCH ${ftsQuery}`).limit(10);
       return results.map((r) => r.id);
     } catch {
       if (!hasRun) {

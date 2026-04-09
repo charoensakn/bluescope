@@ -25,7 +25,7 @@
     "check:packages": "turbo check --filter=@repo/*",
     "check:apps": "turbo check --filter=main --filter=renderer",
     "check": "npm run check:packages && npm run check:apps",
-    "dev": "dotenv -- turbo dev --filter=main --filter=renderer",
+    "dev": "npm run dist:packages && dotenv -- turbo dev --filter=main --filter=renderer",
     "make:version": "node make-version.js",
     "start": "electron-forge start",
     "package": "electron-forge package",
