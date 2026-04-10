@@ -36,7 +36,8 @@ export {
 } from './case_suggestions';
 export { CaseType, CaseTypeData, CaseTypeRepo } from './case_types';
 export { Case, CaseData, CaseRepo } from './cases';
-export { connect, DB, migrate } from './db';
+export { connect, migrate } from './db';
+export { DB } from './db_type';
 export { Preset, PresetData, PresetRepo } from './presets';
 export { SearchRepo } from './search';
 export {

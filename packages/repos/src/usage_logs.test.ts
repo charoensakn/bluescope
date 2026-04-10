@@ -9,7 +9,7 @@ describe('UsageLogRepo', () => {
 
   beforeEach(async () => {
     db = connect();
-    migrate(db, path.join(__dirname, '..', 'drizzle'));
+    await migrate(db, path.join(__dirname, '..', 'drizzle'));
     repo = new UsageLogRepo(db);
   });
 

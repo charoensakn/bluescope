@@ -2,7 +2,7 @@ import { sql } from 'drizzle-orm';
 import { sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { BaseRepo } from './base';
 import { CaseRepo } from './cases';
-import type { DB } from './db';
+import type { DB } from './db_type';
 
 const ftsTable = sqliteTable('cases_fts', {
   id: text(),

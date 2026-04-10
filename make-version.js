@@ -1,5 +1,5 @@
-import fs from 'node:fs';
-import path from 'node:path';
+const fs = require('fs');
+const path = require('path');
 
 const appPath = path.join('package.json');
 const mainPath = path.join('apps', 'main', 'package.json');

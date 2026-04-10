@@ -12,7 +12,7 @@ describe('CaseAssetRepo', () => {
 
   beforeEach(async () => {
     db = connect();
-    migrate(db, path.join(__dirname, '..', 'drizzle'));
+    await migrate(db, path.join(__dirname, '..', 'drizzle'));
     caseRepo = new CaseRepo(db);
     const createdCase = await caseRepo.create({ title: 'Test Case' });
     caseId = createdCase.id;

@@ -7,9 +7,9 @@ describe('PresetRepo', () => {
   let repo: PresetRepo;
   let db: ReturnType<typeof connect>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     db = connect();
-    migrate(db, path.join(__dirname, '..', 'drizzle'));
+    await migrate(db, path.join(__dirname, '..', 'drizzle'));
     repo = new PresetRepo(db);
   });
 

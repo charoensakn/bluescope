@@ -1,4 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { availableProviders } from './provider';
 
 vi.mock('electron', () => ({
   app: {
@@ -19,8 +20,6 @@ vi.mock('node:fs', async (importOriginal) => {
     writeFileSync: vi.fn(),
   };
 });
-
-const { availableProviders } = await import('./provider');
 
 describe('provider module', () => {
   describe('availableProviders', () => {

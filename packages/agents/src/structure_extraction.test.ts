@@ -130,7 +130,9 @@ describe('StructureExtractionAgent', () => {
     it('throws for unsupported extract type in Thai prompt', () => {
       const agent = makeAgent();
       // @ts-expect-error: intentionally passing invalid extract type
-      expect(() => agent.userPrompt({ description: 'x', extract: 'unknown', thai: true })).toThrow('Unsupported extract type');
+      expect(() => agent.userPrompt({ description: 'x', extract: 'unknown', thai: true })).toThrow(
+        'Unsupported extract type',
+      );
     });
 
     it('includes both story and entities when both provided', () => {

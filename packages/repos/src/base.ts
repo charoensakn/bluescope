@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { DB } from './db';
+import type { DB } from './db_type';
 
 export abstract class BaseRepo {
   private static _lastTs = 0;

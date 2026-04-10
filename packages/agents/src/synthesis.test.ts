@@ -102,9 +102,7 @@ describe('SynthesisAgent', () => {
       const prompt = agent.userPrompt({
         skillsPath: '/path',
         thai: true,
-        suggestions: [
-          { name: '01-homicide', weight: 1, text: 'คำแนะนำ' },
-        ],
+        suggestions: [{ name: '01-homicide', weight: 1, text: 'คำแนะนำ' }],
       });
       expect(prompt).toContain('คดีฆาตกรรม');
       expect(prompt).toContain('คำแนะนำ');
@@ -127,9 +125,7 @@ describe('SynthesisAgent', () => {
       const agent = makeAgent();
       const prompt = agent.userPrompt({
         skillsPath: '/path',
-        suggestions: [
-          { name: 'unknown-skill', weight: 1, text: 'Some advisory' },
-        ],
+        suggestions: [{ name: 'unknown-skill', weight: 1, text: 'Some advisory' }],
       });
       // Should use the raw name since skill lookup fails
       expect(prompt).toContain('unknown-skill');

@@ -9,7 +9,7 @@ describe('CaseRepo', () => {
 
   beforeEach(async () => {
     db = connect();
-    migrate(db, path.join(__dirname, '..', 'drizzle')); // Ensure tables are created for testing
+    await migrate(db, path.join(__dirname, '..', 'drizzle')); // Ensure tables are created for testing
     repo = new CaseRepo(db);
   });
 

@@ -13,7 +13,7 @@
     "lint": "biome lint  --write",
     "format": "biome format --write",
     "check": "biome check --write",
-    "test": "vitest"
+    "test": "vitest run src"
   },
   "dependencies": {
     "@repo/agents": "*",

@@ -39,7 +39,7 @@ const appVersions = JSON.parse(fs.readFileSync(versionPath, 'utf-8'));
 
 Menu.setApplicationMenu(null);
 
-const createWindow = () => {
+const createWindow = async () => {
   const splashWin = new BaseWindow({
     width: 600,
     height: 400,
@@ -64,7 +64,7 @@ const createWindow = () => {
   // Initialize database and modules
   try {
     const db = connect(dbPath);
-    migrate(db, migrationsPath);
+    await migrate(db, migrationsPath);
 
     ipcMain.on('versions', (event) => {
       event.returnValue = appVersions;

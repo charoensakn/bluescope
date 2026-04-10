@@ -64,16 +64,16 @@ describe('AdvisoryAgent', () => {
 
     it('throws when skill not found for the given skillId', () => {
       const agent = makeAgent();
-      expect(() =>
-        agent.systemPrompt({ skillsPath: '/some/path', skillId: 'non-existent' }),
-      ).toThrow('Skill "non-existent" not found');
+      expect(() => agent.systemPrompt({ skillsPath: '/some/path', skillId: 'non-existent' })).toThrow(
+        'Skill "non-existent" not found',
+      );
     });
 
     it('throws when skill definition is empty', () => {
       const agent = makeAgent();
-      expect(() =>
-        agent.systemPrompt({ skillsPath: '/some/path', skillId: '03-arson' }),
-      ).toThrow('does not have a skill definition');
+      expect(() => agent.systemPrompt({ skillsPath: '/some/path', skillId: '03-arson' })).toThrow(
+        'does not have a skill definition',
+      );
     });
 
     it('returns the skill instructions for a valid skillId', () => {

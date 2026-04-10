@@ -120,9 +120,7 @@ describe('LLM', () => {
       const llm = new LLM('openai', 'gpt-4', undefined, 'key');
       // Manually set isRun to simulate a previous run without actual API call
       llm.isRun = true;
-      await expect(
-        llm.generateText({ prompt: 'hello' }),
-      ).rejects.toThrow('Agent is already run');
+      await expect(llm.generateText({ prompt: 'hello' })).rejects.toThrow('Agent is already run');
     });
 
     it('streamText throws on second call', () => {

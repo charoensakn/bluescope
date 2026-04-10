@@ -11,7 +11,7 @@ describe('SearchRepo', () => {
 
   beforeEach(async () => {
     db = connect();
-    migrate(db, path.join(__dirname, '..', 'drizzle'));
+    await migrate(db, path.join(__dirname, '..', 'drizzle'));
     caseRepo = new CaseRepo(db);
     repo = new SearchRepo(db, connect());
   });

@@ -3,7 +3,7 @@ import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { loadSkills } from './utils';
 
-const skillsRoot = resolve(__dirname, '../../skills');
+const skillsRoot = resolve(__dirname, '../../skills/src');
 const homicideDir = join(skillsRoot, '01-homicide');
 const homicideReferencePath = join(homicideDir, 'references', 'doc.md');
 

@@ -36,6 +36,11 @@
       "dependsOn": ["build", "^dist"],
       "inputs": ["$TURBO_DEFAULT$"],
       "cache": false
+    },
+    "test": {
+      "dependsOn": ["^test"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "cache": false
     }
   }
 }

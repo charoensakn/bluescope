@@ -1,6 +1,6 @@
 import { and, count, desc, eq, isNull } from 'drizzle-orm';
 import { BaseRepo } from './base';
-import type { DB } from './db';
+import type { DB } from './db_type';
 
 export type CaseTypeSum = {
   caseType: string;

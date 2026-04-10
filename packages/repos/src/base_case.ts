@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { BaseRepo } from './base';
-import type { DB } from './db';
+import type { DB } from './db_type';
 
 export abstract class BaseCaseRepo<T> extends BaseRepo {
   constructor(

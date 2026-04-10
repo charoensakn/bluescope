@@ -35,9 +35,7 @@ describe('EntityRefinementAgent', () => {
     });
 
     it('throws when neither description nor entity provided', () => {
-      expect(() => makeAgent().systemPrompt({})).toThrow(
-        'At least one of description or entity must be provided',
-      );
+      expect(() => makeAgent().systemPrompt({})).toThrow('At least one of description or entity must be provided');
     });
   });
 
