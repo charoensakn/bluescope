@@ -56,8 +56,8 @@ The following end-to-end pipeline shows how a raw case narrative becomes structu
 
 ```mermaid
 flowchart TD
-    START@{ shape: circle, label: "Start" }
-    STOP@{ shape: circle, label: "End" }
+    START@{ shape: circle, label: "START" }
+    END@{ shape: circle, label: "END" }
 
     A@{ shape: rect, label: "Input raw case narrative" }
     B@{ shape: diamond, label: "Needs refinement?" }
@@ -75,22 +75,21 @@ flowchart TD
     START --> A
     A --> B
 
-    B -->|Y| C
     B -->|Y| D
+    D --> C
     C --> B
-    D --> B
 
     B -->|N| E
 
     E -->|Y| F
     F --> G
-    G --> H
+    G --> B
 
     E -->|N| H
 
     H --> I
     I --> J
-    J --> STOP
+    J --> END
 ```
 
 ## Key Design Decisions

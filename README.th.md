@@ -56,8 +56,8 @@ bluescope/
 
 ```mermaid
 flowchart TD
-    START@{ shape: circle, label: "Start" }
-    STOP@{ shape: circle, label: "End" }
+    START@{ shape: circle, label: "START" }
+    END@{ shape: circle, label: "END" }
 
     A@{ shape: rect, label: "รับข้อมูลบรรยายเหตุการณ์" }
     B@{ shape: diamond, label: "ต้องปรับปรุงเพิ่มเติมหรือไม่?" }
@@ -75,22 +75,21 @@ flowchart TD
     START --> A
     A --> B
 
-    B -->|Y| C
     B -->|Y| D
+    D --> C
     C --> B
-    D --> B
 
     B -->|N| E
 
     E -->|Y| F
     F --> G
-    G --> H
+    G --> B
 
     E -->|N| H
 
     H --> I
     I --> J
-    J --> STOP
+    J --> END
 ```
 
 ## การออกแบบที่สำคัญ
